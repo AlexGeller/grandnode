@@ -1,23 +1,18 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core.Caching;
+﻿using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Localization;
 using Grand.Services.Configuration;
 using Grand.Services.Events;
 using Grand.Services.Stores;
-using Moq;
-using MongoDB.Driver;
 using Grand.Services.Tests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
-namespace Grand.Services.Localization.Tests {
+namespace Grand.Services.Localization.Tests
+{
     [TestClass()]
-    public class LanguageServiceTests {
+    public class LanguageServiceTests
+    {
         private IRepository<Language> _languageRepo;
         private IStoreMappingService _storeMappingService;
         private ILanguageService _languageService;
@@ -26,17 +21,18 @@ namespace Grand.Services.Localization.Tests {
         private LocalizationSettings _localizationSettings;
 
         [TestInitialize()]
-        public void TestInitialize() {
-            
-
-            var lang1 = new Language {
+        public void TestInitialize()
+        {
+            var lang1 = new Language
+            {
                 Name = "English",
                 LanguageCulture = "en-Us",
                 FlagImageFileName = "us.png",
                 Published = true,
                 DisplayOrder = 1
             };
-            var lang2 = new Language {
+            var lang2 = new Language
+            {
                 Name = "Russian",
                 LanguageCulture = "ru-Ru",
                 FlagImageFileName = "ru.png",
@@ -62,7 +58,8 @@ namespace Grand.Services.Localization.Tests {
         }
 
         [TestMethod()]
-        public void Can_get_all_languages() {
+        public void Can_get_all_languages()
+        {
             var languages = _languageService.GetAllLanguages();
             Assert.IsNotNull(languages);
             Assert.IsTrue(languages.Count > 0);

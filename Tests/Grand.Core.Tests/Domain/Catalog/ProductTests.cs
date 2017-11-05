@@ -1,12 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Domain.Catalog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Core.Domain.Catalog.Tests {
+namespace Grand.Core.Domain.Catalog.Tests
+{
     [TestClass()]
     public class ProductTests {
         [TestMethod()]

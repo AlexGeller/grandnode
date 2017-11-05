@@ -1,12 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.ExportImport;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Grand.Core.Domain.Common;
+﻿using Grand.Core.Domain.Common;
 using Grand.Core.Domain.Customers;
 using Grand.Core.Domain.Directory;
 using Grand.Core.Domain.Orders;
@@ -14,15 +6,18 @@ using Grand.Core.Domain.Payments;
 using Grand.Core.Domain.Shipping;
 using Grand.Core.Domain.Tax;
 using Grand.Services.Catalog;
+using Grand.Services.Discounts;
 using Grand.Services.Media;
 using Grand.Services.Messages;
 using Grand.Services.Stores;
-using Rhino.Mocks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using MongoDB.Driver;
-using Grand.Services.Discounts;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
-namespace Grand.Services.ExportImport.Tests {
+namespace Grand.Services.ExportImport.Tests
+{
     [TestClass()]
     public class ExportManagerTests {
         private ICategoryService _categoryService;
@@ -34,6 +29,7 @@ namespace Grand.Services.ExportImport.Tests {
         private IStoreService _storeService;
         private IProductService _productService;
         private IDiscountService _discountService;
+
         [TestInitialize()]
         public void TestInitialize() {
             _storeService = new Mock<IStoreService>().Object;

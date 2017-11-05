@@ -1,13 +1,8 @@
 using Autofac;
-using Autofac.Core;
 using Grand.Core.Configuration;
-using Grand.Core.Data;
 using Grand.Core.Infrastructure;
 using Grand.Core.Infrastructure.DependencyManagement;
-using Grand.Data;
-using Grand.Plugin.Tax.CountryStateZip.Domain;
 using Grand.Plugin.Tax.CountryStateZip.Services;
-using Grand.Web.Framework.Mvc;
 
 namespace Grand.Plugin.Tax.CountryStateZip
 {

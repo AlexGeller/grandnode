@@ -1,20 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core;
-using Grand.Core.Domain.Common;
-using Grand.Core.Domain.Customers;
+﻿using Grand.Core;
 using Grand.Core.Domain.Stores;
 using Grand.Services.Common;
 using Grand.Services.Configuration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using MongoDB.Driver;
+using System;
 
-namespace Grand.Services.Helpers.Tests {
+namespace Grand.Services.Helpers.Tests
+{
     [TestClass()]
     public class DateTimeHelperTests {
         private IWorkContext _workContext;
@@ -85,16 +78,21 @@ namespace Grand.Services.Helpers.Tests {
 
         [TestMethod()]
         public void Can_convert_dateTime_to_utc_dateTime() {
+
             var sourceDateTime = TimeZoneInfo.FindSystemTimeZoneById("E. Europe Standard Time"); //(GMT+02:00) Minsk;
             Assert.IsNotNull(sourceDateTime);
 
             //summer time
-            var convertedDateTime1 = _dateTimeHelper.ConvertToUtcTime(new DateTime(2010, 06, 01, 0, 0, 0), sourceDateTime);
+            var dateTime1 = new DateTime(2010, 06, 01, 0, 0, 0);
+            var convertedDateTime1 = _dateTimeHelper.ConvertToUtcTime(dateTime1, sourceDateTime);
             Assert.AreEqual(new DateTime(2010, 05, 31, 21, 0, 0), convertedDateTime1); //31th May 2010, 21:00
 
+            
             //winter time
-            var convertedDateTime2 = _dateTimeHelper.ConvertToUtcTime(new DateTime(2010, 01, 01, 0, 0, 0), sourceDateTime);
+            var dateTime2 = new DateTime(2010, 01, 01, 0, 0, 0);
+            var convertedDateTime2 = _dateTimeHelper.ConvertToUtcTime(dateTime2, sourceDateTime);
             Assert.AreEqual(new DateTime(2009, 12, 31, 22, 0, 0), convertedDateTime2); //31th December 2009, 22:00
+
         }
     }
 }

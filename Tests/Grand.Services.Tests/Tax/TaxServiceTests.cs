@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Domain.Catalog;
 using Grand.Core.Domain.Common;
 using Grand.Core.Domain.Customers;
@@ -7,8 +6,9 @@ using Grand.Core.Domain.Tax;
 using Grand.Core.Plugins;
 using Grand.Services.Common;
 using Grand.Services.Directory;
-using Moq;
 using Grand.Services.Logging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace Grand.Services.Tax.Tests
 {

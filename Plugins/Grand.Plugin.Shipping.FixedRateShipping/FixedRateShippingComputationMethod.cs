@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Web.Routing;
+﻿using Grand.Core;
+using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Shipping;
 using Grand.Core.Plugins;
 using Grand.Services.Configuration;
 using Grand.Services.Localization;
 using Grand.Services.Shipping;
 using Grand.Services.Shipping.Tracking;
-using Grand.Core.Domain.Orders;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using System;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Shipping.FixedRateShipping
 {
@@ -20,18 +23,21 @@ namespace Grand.Plugin.Shipping.FixedRateShipping
 
         private readonly ISettingService _settingService;
         private readonly IShippingService _shippingService;
+        private readonly IWebHelper _webHelper;
 
         #endregion
 
         #region Ctor
         public FixedRateShippingComputationMethod(ISettingService settingService,
-            IShippingService shippingService)
+            IShippingService shippingService,
+            IWebHelper webHelper)
         {
             this._settingService = settingService;
             this._shippingService = shippingService;
+            this._webHelper = webHelper;
         }
         #endregion
-        
+
         #region Utilities
 
         private decimal GetRate(string shippingMethodId)
@@ -43,6 +49,14 @@ namespace Grand.Plugin.Shipping.FixedRateShipping
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Gets a configuration page URL
+        /// </summary>
+        public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/ShippingFixedRate/Configure";
+        }
 
         /// <summary>
         ///  Gets available shipping options
@@ -88,7 +102,7 @@ namespace Grand.Plugin.Shipping.FixedRateShipping
 
             string restrictByCountryId = (getShippingOptionRequest.ShippingAddress != null && !String.IsNullOrEmpty(getShippingOptionRequest.ShippingAddress.CountryId)) ? getShippingOptionRequest.ShippingAddress.CountryId : "";
             var shippingMethods = this._shippingService.GetAllShippingMethods(restrictByCountryId);
-            
+
             var rates = new List<decimal>();
             foreach (var shippingMethod in shippingMethods)
             {
@@ -102,19 +116,6 @@ namespace Grand.Plugin.Shipping.FixedRateShipping
                 return rates[0];
 
             return null;
-        }
-
-        /// <summary>
-        /// Gets a route for provider configuration
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
-        {
-            actionName = "Configure";
-            controllerName = "ShippingFixedRate";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Shipping.FixedRateShipping.Controllers" }, { "area", null } };
         }
 
         /// <summary>
@@ -174,7 +175,7 @@ namespace Grand.Plugin.Shipping.FixedRateShipping
                 return ShippingRateComputationMethodType.Offline;
             }
         }
-        
+
         /// <summary>
         /// Gets a shipment tracker
         /// </summary>
@@ -186,6 +187,23 @@ namespace Grand.Plugin.Shipping.FixedRateShipping
                 //return new GeneralShipmentTracker(EngineContext.Current.Resolve<ITypeFinder>());
                 return null;
             }
+        }
+
+        public IList<string> ValidateShippingForm(IFormCollection form)
+        {
+            //you can implement here any validation logic
+            return new List<string>();
+        }
+
+        public JsonResult GetFormPartialView(string shippingOption)
+        {
+            //you can use here any view 
+            return new JsonResult("");
+        }
+
+        public void GetPublicViewComponent(out string viewComponentName)
+        {
+            viewComponentName = "";
         }
 
         #endregion

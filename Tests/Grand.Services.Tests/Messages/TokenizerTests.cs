@@ -1,13 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Messages;
-using System;
+﻿using Grand.Core.Domain.Messages;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core.Domain.Messages;
 
-namespace Grand.Services.Messages.Tests {
+namespace Grand.Services.Messages.Tests
+{
     [TestClass()]
     public class TokenizerTests {
         [TestMethod()]

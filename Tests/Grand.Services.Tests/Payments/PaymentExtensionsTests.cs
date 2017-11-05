@@ -1,26 +1,26 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Payments;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Services.Payments.Tests {
+namespace Grand.Services.Payments.Tests
+{
     [TestClass()]
-    public class PaymentExtensionsTests {
+    public class PaymentExtensionsTests
+    {
         [TestMethod()]
-        public void Can_deserialize_empty_string() {
+        public void Can_deserialize_empty_string()
+        {
             //passsing "", shouldn't be null
             ProcessPaymentRequest processPaymentRequest = new ProcessPaymentRequest();
-            Dictionary<string,object> deserialized = processPaymentRequest.DeserializeCustomValues("");
+            Dictionary<string, object> deserialized = processPaymentRequest.DeserializeCustomValues("");
 
             Assert.IsNotNull(deserialized);
             Assert.AreEqual(0, deserialized.Count());
         }
 
         [TestMethod()]
-        public void Can_deserialize_null_string() {
+        public void Can_deserialize_null_string()
+        {
             //passsing null, shouldn't be null
             ProcessPaymentRequest processPaymentRequest = new ProcessPaymentRequest();
             Dictionary<string, object> deserialized = processPaymentRequest.DeserializeCustomValues(null);
@@ -30,7 +30,8 @@ namespace Grand.Services.Payments.Tests {
         }
 
         [TestMethod()]
-        public void Can_serialize_and_deserialize_empty_CustomValues() {
+        public void Can_serialize_and_deserialize_empty_CustomValues()
+        {
             //passsing serialized empty object
             ProcessPaymentRequest processPaymentRequest = new ProcessPaymentRequest();
             string serializedXML = processPaymentRequest.SerializeCustomValues();
@@ -41,7 +42,8 @@ namespace Grand.Services.Payments.Tests {
         }
 
         [TestMethod()]
-        public void Can_serialize_and_deserialize_CustomValues() {
+        public void Can_serialize_and_deserialize_CustomValues()
+        {
             //checks if conversations are valid
             //null into ""
             //integral into string

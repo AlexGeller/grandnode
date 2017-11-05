@@ -1,10 +1,10 @@
+using Grand.Core.Data;
+using Grand.Plugin.Feed.GoogleShopping.Domain;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Grand.Core.Data;
-using Grand.Plugin.Feed.GoogleShopping.Domain;
-using MongoDB.Driver.Linq;
 
 namespace Grand.Plugin.Feed.GoogleShopping.Services
 {
@@ -95,9 +95,7 @@ namespace Grand.Plugin.Feed.GoogleShopping.Services
                 return new List<string>();
 
             //parse the file
-            var result = fileContent.Split(new [] {"\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries)
-
-                .ToList();
+            var result = fileContent.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
             return result;
         }
 

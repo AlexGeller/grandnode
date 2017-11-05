@@ -1,30 +1,23 @@
-﻿using System.Web.Mvc;
-using System.Web.Routing;
-using Grand.Web.Framework.Mvc.Routes;
+﻿using Grand.Framework.Mvc.Routing;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 
 namespace Grand.Plugin.ExternalAuth.Facebook
 {
     public partial class RouteProvider : IRouteProvider
     {
-        public void RegisterRoutes(RouteCollection routes)
+        public void RegisterRoutes(IRouteBuilder routeBuilder)
         {
-            routes.MapRoute("Plugin.ExternalAuth.Facebook.Login",
-                 "Plugins/ExternalAuthFacebook/Login",
-                 new { controller = "ExternalAuthFacebook", action = "Login" },
-                 new[] { "Grand.Plugin.ExternalAuth.Facebook.Controllers" }
-            );
-
-            routes.MapRoute("Plugin.ExternalAuth.Facebook.LoginCallback",
-                 "Plugins/ExternalAuthFacebook/LoginCallback",
-                 new { controller = "ExternalAuthFacebook", action = "LoginCallback" },
-                 new[] { "Grand.Plugin.ExternalAuth.Facebook.Controllers" }
+            routeBuilder.MapRoute("Plugin.ExternalAuth.Facebook.SignInFacebook",
+                 "signin-failed",
+                 new { controller = "FacebookAuthentication", action = "SignInFailed" }
             );
         }
         public int Priority
         {
             get
             {
-                return 0;
+                return 10;
             }
         }
     }

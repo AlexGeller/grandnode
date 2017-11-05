@@ -1,25 +1,22 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Infrastructure.DependencyManagement;
-using System;
+﻿using Autofac;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac;
-using Autofac.Core.Lifetime;
-using Autofac.Integration.Mvc;
 
-namespace Grand.Core.Infrastructure.DependencyManagement.Tests {
+namespace Grand.Core.Infrastructure.DependencyManagement.Tests
+{
     [TestClass()]
-    public class ContainerManagerTests {
+    public class ContainerManagerTests
+    {
 
-        public interface IInterface{ }
+        public interface IInterface { }
         public class First : IInterface { }
         public class Second : IInterface { }
         public class Third : IInterface { }
 
         [TestMethod()]
-        public void EnumerablesFromDifferentLifetimeScopesShouldReturnDifferentCollections() {
+        public void EnumerablesFromDifferentLifetimeScopesShouldReturnDifferentCollections()
+        {
             ContainerBuilder rootBuilder = new ContainerBuilder();
             rootBuilder.RegisterType<First>().As<IInterface>();
             IContainer rootCointainer = rootBuilder.Build();
@@ -37,4 +34,3 @@ namespace Grand.Core.Infrastructure.DependencyManagement.Tests {
         }
     }
 }
- 

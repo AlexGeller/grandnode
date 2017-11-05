@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Caching;
+﻿using Grand.Core.Caching;
 using Grand.Core.Data;
+using Grand.Core.Domain.Common;
 using Grand.Core.Domain.Customers;
 using Grand.Core.Domain.Forums;
 using Grand.Core.Domain.Orders;
@@ -11,18 +11,19 @@ using Grand.Services.Localization;
 using Grand.Services.Messages;
 using Grand.Services.Security;
 using Grand.Services.Stores;
-using MongoDB.Driver;
-using Rhino.Mocks;
-using Grand.Data;
-using Grand.Core.Domain.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
-namespace Grand.Services.Customers.Tests {
+namespace Grand.Services.Customers.Tests
+{
     [TestClass()]
-    public class CustomerRegistrationServiceTests {
+    public class CustomerRegistrationServiceTests
+    {
         private IRepository<Customer> _customerRepo;
         private IRepository<CustomerHistoryPassword> _customerHistoryRepo;
         private IRepository<CustomerRole> _customerRoleRepo;
-        private IRepository<CustomerRoleProduct> _customerRoleProductRepo; 
+        private IRepository<CustomerProductPrice> _customerProductPriceRepo;
+        private IRepository<CustomerRoleProduct> _customerRoleProductRepo;
         private IRepository<Order> _orderRepo;
         private IRepository<ForumPost> _forumPostRepo;
         private IRepository<ForumTopic> _forumTopicRepo;
@@ -40,8 +41,10 @@ namespace Grand.Services.Customers.Tests {
         private CommonSettings _commonSettings;
 
         //this method just help to get rid of repetitive code below
-        private void AddCustomerToRegisteredRole(Customer customer) {
-            customer.CustomerRoles.Add(new CustomerRole {
+        private void AddCustomerToRegisteredRole(Customer customer)
+        {
+            customer.CustomerRoles.Add(new CustomerRole
+            {
                 Active = true,
                 IsSystemRole = true,
                 SystemName = SystemCustomerRoleNames.Registered
@@ -49,17 +52,21 @@ namespace Grand.Services.Customers.Tests {
         }
 
         [TestInitialize()]
-        public void TestInitialize() {             
-            _securitySettings = new SecuritySettings {
-                EncryptionKey = "273ece6f97dd844d"
+        public void TestInitialize()
+        {
+            _securitySettings = new SecuritySettings
+            {
+                EncryptionKey = "273ece6f97dd844d97dd8f4d"
             };
-            _rewardPointsSettings = new RewardPointsSettings {
+            _rewardPointsSettings = new RewardPointsSettings
+            {
                 Enabled = false,
             };
 
             _encryptionService = new EncryptionService(_securitySettings);
 
-            var customer1 = new Customer {
+            var customer1 = new Customer
+            {
                 Username = "a@b.com",
                 Email = "a@b.com",
                 PasswordFormat = PasswordFormat.Hashed,
@@ -72,7 +79,8 @@ namespace Grand.Services.Customers.Tests {
             customer1.Password = password;
             AddCustomerToRegisteredRole(customer1);
 
-            var customer2 = new Customer {
+            var customer2 = new Customer
+            {
                 Username = "test@test.com",
                 Email = "test@test.com",
                 PasswordFormat = PasswordFormat.Clear,
@@ -81,7 +89,8 @@ namespace Grand.Services.Customers.Tests {
             };
             AddCustomerToRegisteredRole(customer2);
 
-            var customer3 = new Customer {
+            var customer3 = new Customer
+            {
                 Username = "user@test.com",
                 Email = "user@test.com",
                 PasswordFormat = PasswordFormat.Encrypted,
@@ -90,7 +99,8 @@ namespace Grand.Services.Customers.Tests {
             };
             AddCustomerToRegisteredRole(customer3);
 
-            var customer4 = new Customer {
+            var customer4 = new Customer
+            {
                 Username = "registered@test.com",
                 Email = "registered@test.com",
                 PasswordFormat = PasswordFormat.Clear,
@@ -99,7 +109,8 @@ namespace Grand.Services.Customers.Tests {
             };
             AddCustomerToRegisteredRole(customer4);
 
-            var customer5 = new Customer {
+            var customer5 = new Customer
+            {
                 Username = "notregistered@test.com",
                 Email = "notregistered@test.com",
                 PasswordFormat = PasswordFormat.Clear,
@@ -107,10 +118,14 @@ namespace Grand.Services.Customers.Tests {
                 Active = true
             };
 
-            _eventPublisher = MockRepository.GenerateMock<IEventPublisher>();
-            _eventPublisher.Expect(x => x.Publish(Arg<object>.Is.Anything));
-            _storeService = MockRepository.GenerateMock<IStoreService>();
-            
+            //trying to recreate
+
+            var eventPublisher = new Mock<IEventPublisher>();
+            eventPublisher.Setup(x => x.Publish(new object()));
+            _eventPublisher = eventPublisher.Object;
+
+            _storeService = new Mock<IStoreService>().Object;
+
             _customerRepo = new Grand.Services.Tests.MongoDBRepositoryTest<Customer>();
             _customerRepo.Insert(customer1);
             _customerRepo.Insert(customer2);
@@ -118,23 +133,24 @@ namespace Grand.Services.Customers.Tests {
             _customerRepo.Insert(customer4);
             _customerRepo.Insert(customer5);
 
-            _customerRoleRepo = MockRepository.GenerateMock<IRepository<CustomerRole>>();
-            _orderRepo = MockRepository.GenerateMock<IRepository<Order>>();
-            _forumPostRepo = MockRepository.GenerateMock<IRepository<ForumPost>>();
-            _forumTopicRepo = MockRepository.GenerateMock<IRepository<ForumTopic>>();
+            _customerRoleRepo = new Mock<IRepository<CustomerRole>>().Object;
+            _orderRepo = new Mock<IRepository<Order>>().Object;
+            _forumPostRepo = new Mock<IRepository<ForumPost>>().Object;
+            _forumTopicRepo = new Mock<IRepository<ForumTopic>>().Object;
+            _customerProductPriceRepo = new Mock<IRepository<CustomerProductPrice>>().Object;
+            _customerHistoryRepo = new Mock<IRepository<CustomerHistoryPassword>>().Object;
 
-            _customerHistoryRepo = MockRepository.GenerateMock<IRepository<CustomerHistoryPassword>>();
+            _genericAttributeService = new Mock<IGenericAttributeService>().Object;
+            _newsLetterSubscriptionService = new Mock<INewsLetterSubscriptionService>().Object;
+            _localizationService = new Mock<ILocalizationService>().Object;
+            _customerRoleProductRepo = new Mock<IRepository<CustomerRoleProduct>>().Object;
 
-            _genericAttributeService = MockRepository.GenerateMock<IGenericAttributeService>();
-            _newsLetterSubscriptionService = MockRepository.GenerateMock<INewsLetterSubscriptionService>();
-            _localizationService = MockRepository.GenerateMock<ILocalizationService>();
-            _customerRoleProductRepo = MockRepository.GenerateMock<IRepository<CustomerRoleProduct>>();
             _customerSettings = new CustomerSettings();
             _commonSettings = new CommonSettings();
-            _customerService = new CustomerService(new NopNullCache(), _customerRepo, _customerRoleRepo,
+            _customerService = new CustomerService(new NopNullCache(), _customerRepo, _customerRoleRepo, _customerProductPriceRepo,
                 _customerHistoryRepo,
                 _customerRoleProductRepo, _orderRepo, _forumPostRepo, _forumTopicRepo,
-                null, null, _genericAttributeService, null, 
+                null, null, _genericAttributeService, null,
                 _eventPublisher, _customerSettings, _commonSettings);
 
             _customerRegistrationService = new CustomerRegistrationService(
@@ -149,9 +165,10 @@ namespace Grand.Services.Customers.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_only_registered_customers_can_login() {
+        public void Ensure_only_registered_customers_can_login()
+        {
             Assert.AreEqual(
-                CustomerLoginResults.Successful, 
+                CustomerLoginResults.Successful,
                 _customerRegistrationService.ValidateCustomer("registered@test.com", "password"));
 
             Assert.AreEqual(

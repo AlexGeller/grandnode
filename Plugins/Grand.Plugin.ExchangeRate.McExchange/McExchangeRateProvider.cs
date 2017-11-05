@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Grand.Core;
+using Grand.Core.Plugins;
+using Grand.Services.Directory;
+using Grand.Services.Localization;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Xml;
-using Grand.Core;
-using Grand.Core.Plugins;
-using Grand.Services.Directory;
-using Grand.Services.Localization;
 
 namespace Grand.Plugin.ExchangeRate.EcbExchange
 {

@@ -1,28 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Configuration;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Configuration;
+using Grand.Core.Infrastructure;
+using Grand.Framework.Infrastructure.Extensions;
 using Grand.Services.Configuration;
 using Grand.Services.Events;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Grand.Services.Tests.Configuration {
-    public class ConfigFileSettingService : SettingService {
+namespace Grand.Services.Tests.Configuration
+{
+    public class ConfigFileSettingService : SettingService
+    {
         public ConfigFileSettingService(ICacheManager cacheManager,
             IEventPublisher eventPublisher,
             IRepository<Setting> settingRepository) :
-            base(cacheManager, eventPublisher, settingRepository) {
+            base(cacheManager, eventPublisher, settingRepository)
+        {
 
         }
-        public override Setting GetSettingById(string settingId) {
+        public override Setting GetSettingById(string settingId)
+        {
             throw new InvalidOperationException("Get setting by id is not supported");
         }
 
         public override T GetSettingByKey<T>(string key, T defaultValue = default(T),
-            string storeId = "", bool loadSharedValueIfNotFound = false) {
+            string storeId = "", bool loadSharedValueIfNotFound = false)
+        {
 
             if (String.IsNullOrEmpty(key))
                 return defaultValue;
@@ -33,7 +41,8 @@ namespace Grand.Services.Tests.Configuration {
             var setting = settings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase) &&
                 x.StoreId == storeId);
 
-            if (setting == null && !String.IsNullOrEmpty(storeId) && loadSharedValueIfNotFound) {
+            if (setting == null && !String.IsNullOrEmpty(storeId) && loadSharedValueIfNotFound)
+            {
                 setting = settings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase) &&
                     x.StoreId == "");
             }
@@ -44,29 +53,45 @@ namespace Grand.Services.Tests.Configuration {
             return defaultValue;
         }
 
-        public override void DeleteSetting(Setting setting) {
+        public override void DeleteSetting(Setting setting)
+        {
             throw new InvalidOperationException("Deleting settings is not supported");
         }
 
-        public override void SetSetting<T>(string key, T value, string storeId = "", bool clearCache = true) {
+        public override void SetSetting<T>(string key, T value, string storeId = "", bool clearCache = true)
+        {
             throw new NotImplementedException();
         }
 
-        public override IList<Setting> GetAllSettings() {
+        public override IList<Setting> GetAllSettings()
+        {
+            string directory = new WebAppTypeFinder().GetBinDirectory();
+            var configurationBasePath = directory.Substring(0, directory.IndexOf("\\Tests\\Grand.Services.Tests\\") + 27);
+
+            var configuration = new ConfigurationBuilder()
+           .SetBasePath(configurationBasePath)
+           .AddJsonFile("appsettingstest.json", optional: false, reloadOnChange: true)
+           .Build();
+
             var settings = new List<Setting>();
-            var appSettings = ConfigurationManager.AppSettings;
-            foreach (var setting in appSettings.AllKeys) {
-                settings.Add(new Setting {
-                    Name = setting.ToLowerInvariant(),
-                    Value = appSettings[setting]      ,
-                    StoreId = "",
+            var settingObject = new ServiceCollection().ConfigureStartupConfig<ApplicationSettings>(configuration.GetSection("ApplicationSettingsSection"));
+            var properties = settingObject.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                var value = settingObject.GetType().GetProperty(property.Name).GetValue(settingObject, null);
+                settings.Add(new Setting
+                {
+                    Name = property.Name.ToLowerInvariant(),
+                    Value = value.ToString(),
+                    StoreId = ""
                 });
             }
 
             return settings;
         }
 
-        public override void ClearCache() {
+        public override void ClearCache()
+        {
         }
     }
 }

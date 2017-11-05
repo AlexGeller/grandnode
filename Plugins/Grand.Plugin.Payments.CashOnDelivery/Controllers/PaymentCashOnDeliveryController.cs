@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Web.Mvc;
-using Grand.Core;
+﻿using Grand.Core;
+using Grand.Framework.Controllers;
+using Grand.Framework.Mvc.Filters;
 using Grand.Plugin.Payments.CashOnDelivery.Models;
 using Grand.Services.Configuration;
 using Grand.Services.Localization;
-using Grand.Services.Payments;
 using Grand.Services.Stores;
-using Grand.Web.Framework.Controllers;
+using Microsoft.AspNetCore.Mvc;
 using System;
 
 namespace Grand.Plugin.Payments.CashOnDelivery.Controllers
 {
+    [AuthorizeAdmin]
+    [Area("Admin")]
     public class PaymentCashOnDeliveryController : BasePaymentController
     {
         private readonly IWorkContext _workContext;
@@ -36,9 +37,8 @@ namespace Grand.Plugin.Payments.CashOnDelivery.Controllers
             this._languageService = languageService;
         }
         
-        [AdminAuthorize]
-        [ChildActionOnly]
-        public ActionResult Configure()
+        [AuthorizeAdmin]
+        public IActionResult Configure()
         {
             //load settings for a chosen store scope
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
@@ -64,13 +64,12 @@ namespace Grand.Plugin.Payments.CashOnDelivery.Controllers
                 model.ShippableProductRequired_OverrideForStore = _settingService.SettingExists(cashOnDeliveryPaymentSettings, x => x.ShippableProductRequired, storeScope);
             }
 
-            return View("~/Plugins/Payments.CashOnDelivery/Views/PaymentCashOnDelivery/Configure.cshtml", model);
+            return View("~/Plugins/Payments.CashOnDelivery/netcoreapp2.0/Views/PaymentCashOnDelivery/Configure.cshtml", model);
         }
 
         [HttpPost]
-        [AdminAuthorize]
-        [ChildActionOnly]
-        public ActionResult Configure(ConfigurationModel model)
+        [AuthorizeAdmin]
+        public IActionResult Configure(ConfigurationModel model)
         {
             if (!ModelState.IsValid)
                 return Configure();
@@ -115,32 +114,6 @@ namespace Grand.Plugin.Payments.CashOnDelivery.Controllers
 
             return Configure();
         }
-
-        [ChildActionOnly]
-        public ActionResult PaymentInfo()
-        {
-            var cashOnDeliveryPaymentSettings = _settingService.LoadSetting<CashOnDeliveryPaymentSettings>(_storeContext.CurrentStore.Id);
-
-            var model = new PaymentInfoModel
-            {
-                DescriptionText = cashOnDeliveryPaymentSettings.GetLocalizedSetting(x=>x.DescriptionText, _workContext.WorkingLanguage.Id, _storeContext.CurrentStore.Id)
-            };
-
-            return View("~/Plugins/Payments.CashOnDelivery/Views/PaymentCashOnDelivery/PaymentInfo.cshtml", model);
-        }
-
-        [NonAction]
-        public override IList<string> ValidatePaymentForm(FormCollection form)
-        {
-            var warnings = new List<string>();
-            return warnings;
-        }
-
-        [NonAction]
-        public override ProcessPaymentRequest GetPaymentInfo(FormCollection form)
-        {
-            var paymentInfo = new ProcessPaymentRequest();
-            return paymentInfo;
-        }
+       
     }
 }

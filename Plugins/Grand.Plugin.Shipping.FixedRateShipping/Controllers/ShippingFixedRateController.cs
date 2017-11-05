@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
-using System.Web.Mvc;
-using Grand.Core;
+﻿using Grand.Framework.Controllers;
+using Grand.Framework.Kendoui;
+using Grand.Framework.Mvc;
+using Grand.Framework.Mvc.Filters;
+using Grand.Framework.Security;
 using Grand.Plugin.Shipping.FixedRateShipping.Models;
 using Grand.Services.Configuration;
 using Grand.Services.Security;
 using Grand.Services.Shipping;
-using Grand.Web.Framework.Controllers;
-using Grand.Web.Framework.Kendoui;
-using Grand.Web.Framework.Mvc;
-using Grand.Web.Framework.Security;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Shipping.FixedRateShipping.Controllers
 {
-    [AdminAuthorize]
+    [Area("Admin")]
+    [AuthorizeAdmin]
     public class ShippingFixedRateController : BaseShippingController
     {
         private readonly IShippingService _shippingService;
@@ -28,23 +29,13 @@ namespace Grand.Plugin.Shipping.FixedRateShipping.Controllers
             this._permissionService = permissionService;
         }
         
-        protected override void Initialize(System.Web.Routing.RequestContext requestContext)
+        public IActionResult Configure()
         {
-            //little hack here
-            //always set culture to 'en-US' (Telerik has a bug related to editing decimal values in other cultures). Like currently it's done for admin area in Global.asax.cs
-            CommonHelper.SetTelerikCulture();
-
-            base.Initialize(requestContext);
-        }
-
-        [ChildActionOnly]
-        public ActionResult Configure()
-        {
-            return View("~/Plugins/Shipping.FixedRateShipping/Views/ShippingFixedRate/Configure.cshtml");
+            return View("~/Plugins/Shipping.FixedRateShipping/netcoreapp2.0/Views/ShippingFixedRate/Configure.cshtml");
         }
 
         [HttpPost]
-        public ActionResult Configure(DataSourceRequest command)
+        public IActionResult Configure(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
                 return Content("Access denied");
@@ -67,9 +58,8 @@ namespace Grand.Plugin.Shipping.FixedRateShipping.Controllers
         }
 
         [HttpPost]
-
         [AdminAntiForgery]
-        public ActionResult ShippingRateUpdate(FixedShippingRateModel model)
+        public IActionResult ShippingRateUpdate(FixedShippingRateModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
                 return Content("Access denied");
@@ -87,19 +77,6 @@ namespace Grand.Plugin.Shipping.FixedRateShipping.Controllers
         {
             var rate = this._settingService.GetSettingByKey<decimal>(string.Format("ShippingRateComputationMethod.FixedRate.Rate.ShippingMethodId{0}", shippingMethodId));
             return rate;
-        }
-
-
-        public override IList<string> ValidateShippingForm(FormCollection form)
-        {
-            //you can implement here any validation logic
-            return new List<string>();
-        }
-
-        public override JsonResult GetFormPartialView(string shippingOption)
-        {
-            //you can use here any view 
-            return Json("", JsonRequestBehavior.AllowGet);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Grand.Plugin.Tax.CountryStateZip.Infrastructure.Cache
         public ModelCacheEventConsumer()
         {
             //TODO inject static cache manager using constructor
-            this._cacheManager = EngineContext.Current.ContainerManager.Resolve<ICacheManager>();
+            this._cacheManager = EngineContext.Current.Resolve<ICacheManager>();
         }
 
         //tax rates

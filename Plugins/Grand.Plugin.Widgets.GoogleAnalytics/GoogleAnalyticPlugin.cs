@@ -1,9 +1,10 @@
-using System.Collections.Generic;
-using System.Web.Routing;
+using Grand.Core;
 using Grand.Core.Plugins;
 using Grand.Services.Cms;
 using Grand.Services.Configuration;
 using Grand.Services.Localization;
+using Microsoft.AspNetCore.Routing;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Widgets.GoogleAnalytics
 {
@@ -13,10 +14,20 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics
     public class GoogleAnalyticPlugin : BasePlugin, IWidgetPlugin
     {
         private readonly ISettingService _settingService;
+        private readonly IWebHelper _webHelper;
 
-        public GoogleAnalyticPlugin(ISettingService settingService)
+        public GoogleAnalyticPlugin(ISettingService settingService, IWebHelper webHelper)
         {
             this._settingService = settingService;
+            this._webHelper = webHelper;
+        }
+
+        /// <summary>
+        /// Gets a configuration page URL
+        /// </summary>
+        public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/WidgetsGoogleAnalytics/Configure";
         }
 
         /// <summary>
@@ -29,19 +40,6 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics
             { 
                 "body_end_html_tag_before"
             };
-        }
-
-        /// <summary>
-        /// Gets a route for provider configuration
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
-        {
-            actionName = "Configure";
-            controllerName = "WidgetsGoogleAnalytics";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Widgets.GoogleAnalytics.Controllers" }, { "area", null } };
         }
 
         /// <summary>
@@ -68,7 +66,7 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics
         /// </summary>
         public override void Install()
         {
-            var settings = new GoogleAnalyticsSettings
+            var settings = new GoogleAnalyticsEcommerceSettings
             {
                 GoogleId = "UA-0000000-0",
                 TrackingScript = @"<!-- Google code for Analytics tracking -->
@@ -111,7 +109,7 @@ _gaq.push(['_trackTrans']); ",
         public override void Uninstall()
         {
             //settings
-            _settingService.DeleteSetting<GoogleAnalyticsSettings>();
+            _settingService.DeleteSetting<GoogleAnalyticsEcommerceSettings>();
 
             //locales
             this.DeletePluginLocaleResource("Plugins.Widgets.GoogleAnalytics.GoogleId");
@@ -126,6 +124,11 @@ _gaq.push(['_trackTrans']); ",
             this.DeletePluginLocaleResource("Plugins.Widgets.GoogleAnalytics.IncludingTax.Hint");
 
             base.Uninstall();
+        }
+
+        public void GetPublicViewComponent(string widgetZone, out string viewComponentName)
+        {
+            viewComponentName = "WidgetsGoogleAnalytics";
         }
     }
 }

@@ -1,30 +1,27 @@
-﻿using System.Web.Mvc;
-using System.Web.Routing;
-using Grand.Web.Framework.Mvc.Routes;
+﻿using Grand.Framework.Mvc.Routing;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 
 namespace Grand.Plugin.Payments.PayPalStandard
 {
     public partial class RouteProvider : IRouteProvider
     {
-        public void RegisterRoutes(RouteCollection routes)
+        public void RegisterRoutes(IRouteBuilder routeBuilder)
         {
             //PDT
-            routes.MapRoute("Plugin.Payments.PayPalStandard.PDTHandler",
-                 "Plugins/PaymentPayPalStandard/PDTHandler",
-                 new { controller = "PaymentPayPalStandard", action = "PDTHandler" },
-                 new[] { "Grand.Plugin.Payments.PayPalStandard.Controllers" }
+            routeBuilder.MapRoute("Plugin.Payments.PayPalStandard.PDTHandler",
+                 "Admin/PaymentPayPalStandard/PDTHandler",
+                 new { controller = "PaymentPayPalStandard", action = "PDTHandler" }
             );
             //IPN
-            routes.MapRoute("Plugin.Payments.PayPalStandard.IPNHandler",
-                 "Plugins/PaymentPayPalStandard/IPNHandler",
-                 new { controller = "PaymentPayPalStandard", action = "IPNHandler" },
-                 new[] { "Grand.Plugin.Payments.PayPalStandard.Controllers" }
+            routeBuilder.MapRoute("Plugin.Payments.PayPalStandard.IPNHandler",
+                 "Admin/PaymentPayPalStandard/IPNHandler",
+                 new { controller = "PaymentPayPalStandard", action = "IPNHandler" }
             );
             //Cancel
-            routes.MapRoute("Plugin.Payments.PayPalStandard.CancelOrder",
-                 "Plugins/PaymentPayPalStandard/CancelOrder",
-                 new { controller = "PaymentPayPalStandard", action = "CancelOrder" },
-                 new[] { "Grand.Plugin.Payments.PayPalStandard.Controllers" }
+            routeBuilder.MapRoute("Plugin.Payments.PayPalStandard.CancelOrder",
+                 "Admin/PaymentPayPalStandard/CancelOrder",
+                 new { controller = "PaymentPayPalStandard", action = "CancelOrder" }
             );
         }
         public int Priority

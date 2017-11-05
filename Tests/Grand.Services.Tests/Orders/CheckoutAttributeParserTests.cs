@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Catalog;
@@ -12,10 +10,13 @@ using Grand.Services.Events;
 using Grand.Services.Media;
 using Grand.Services.Stores;
 using Grand.Services.Tax;
-using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
+using Moq;
+using System.Linq;
 
-namespace Grand.Services.Orders.Tests {
+namespace Grand.Services.Orders.Tests
+{
     [TestClass()]
     public class CheckoutAttributeParserTests {
         private IRepository<CheckoutAttribute> _checkoutAttributeRepo;

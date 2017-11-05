@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using Grand.Core.Domain.Directory;
+﻿using Grand.Core.Domain.Directory;
 using Grand.Core.Plugins;
 using Grand.Services.Directory;
+using System.Collections.Generic;
 
-namespace Grand.Services.Tests.Directory {
+namespace Grand.Services.Tests.Directory
+{
     public class TestExchangeRateProvider : BasePlugin, IExchangeRateProvider {
         /// <summary>
         /// Gets currency live rates

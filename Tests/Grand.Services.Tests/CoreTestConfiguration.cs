@@ -13,32 +13,31 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Bindings;
+using MongoDB.Driver.Core.Clusters;
+using MongoDB.Driver.Core.Clusters.ServerSelectors;
+using MongoDB.Driver.Core.Configuration;
+using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.Operations;
+using MongoDB.Driver.Core.Servers;
+using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
+using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver.Core.Bindings;
-using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Clusters.ServerSelectors;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
-using MongoDB.Driver.Core.Misc;
-using MongoDB.Driver.Core.Operations;
-using MongoDB.Driver.Core.Servers;
-using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
-using NUnit.Framework;
-using Grand.Services.Tests;
-using MongoDB.Driver;
 
 
-namespace Grand.Services.Tests {
-    public static class CoreTestConfiguration {
+namespace Grand.Services.Tests
+{
+    public static class CoreTestConfiguration
+    {
         #region static
         // static fields
         private static Lazy<ICluster> __cluster = new Lazy<ICluster>(CreateCluster, isThreadSafe: true);
@@ -48,41 +47,51 @@ namespace Grand.Services.Tests {
         private static TraceSource __traceSource;
 
         // static properties
-        public static ICluster Cluster {
+        public static ICluster Cluster
+        {
             get { return __cluster.Value; }
         }
 
-        public static ConnectionString ConnectionString {
+        public static ConnectionString ConnectionString
+        {
             get { return __connectionString; }
         }
 
-        public static DatabaseNamespace DatabaseNamespace {
+        public static DatabaseNamespace DatabaseNamespace
+        {
             get { return __databaseNamespace; }
         }
 
-        public static MessageEncoderSettings MessageEncoderSettings {
+        public static MessageEncoderSettings MessageEncoderSettings
+        {
             get { return __messageEncoderSettings; }
         }
 
-        public static SemanticVersion ServerVersion {
-            get {
+        public static SemanticVersion ServerVersion
+        {
+            get
+            {
                 var server = __cluster.Value.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
                 return server.Description.Version;
             }
         }
 
-        public static TraceSource TraceSource {
+        public static TraceSource TraceSource
+        {
             get { return __traceSource; }
         }
 
         // static methods
-        public static ClusterBuilder ConfigureCluster() {
+        public static ClusterBuilder ConfigureCluster()
+        {
             return ConfigureCluster(new ClusterBuilder());
         }
 
-        public static ClusterBuilder ConfigureCluster(ClusterBuilder builder) {
+        public static ClusterBuilder ConfigureCluster(ClusterBuilder builder)
+        {
             var serverSelectionTimeoutString = Environment.GetEnvironmentVariable("MONGO_SERVER_SELECTION_TIMEOUT_MS");
-            if (serverSelectionTimeoutString == null) {
+            if (serverSelectionTimeoutString == null)
+            {
                 serverSelectionTimeoutString = "30000";
             }
 
@@ -90,16 +99,21 @@ namespace Grand.Services.Tests {
                 .ConfigureWithConnectionString(__connectionString)
                 .ConfigureCluster(c => c.With(serverSelectionTimeout: TimeSpan.FromMilliseconds(int.Parse(serverSelectionTimeoutString))));
 
-            if (__connectionString.Ssl.HasValue && __connectionString.Ssl.Value) {
+            if (__connectionString.Ssl.HasValue && __connectionString.Ssl.Value)
+            {
                 var certificateFilename = Environment.GetEnvironmentVariable("MONGO_SSL_CERT_FILE");
-                if (certificateFilename != null) {
-                    builder.ConfigureSsl(ssl => {
+                if (certificateFilename != null)
+                {
+                    builder.ConfigureSsl(ssl =>
+                    {
                         var password = Environment.GetEnvironmentVariable("MONGO_SSL_CERT_PASS");
                         X509Certificate cert;
-                        if (password == null) {
+                        if (password == null)
+                        {
                             cert = new X509Certificate2(certificateFilename);
                         }
-                        else {
+                        else
+                        {
                             cert = new X509Certificate2(certificateFilename, password);
                         }
                         return ssl.With(
@@ -111,78 +125,89 @@ namespace Grand.Services.Tests {
             return ConfigureLogging(builder);
         }
 
-        public static ClusterBuilder ConfigureLogging(ClusterBuilder builder) {
+        public static ClusterBuilder ConfigureLogging(ClusterBuilder builder)
+        {
             var environmentVariable = Environment.GetEnvironmentVariable("MONGO_LOGGING");
-            if (environmentVariable == null) {
+            if (environmentVariable == null)
+            {
                 return builder;
             }
 
             SourceLevels defaultLevel;
-            if (!Enum.TryParse<SourceLevels>(environmentVariable, ignoreCase: true, result: out defaultLevel)) {
+            if (!Enum.TryParse<SourceLevels>(environmentVariable, ignoreCase: true, result: out defaultLevel))
+            {
                 return builder;
             }
 
             __traceSource = new TraceSource("mongodb-tests", defaultLevel);
-            __traceSource.Listeners.Clear(); // remove the default listener
-            var listener = new ConsoleTraceListener();
-            listener.TraceOutputOptions = TraceOptions.DateTime;
-            __traceSource.Listeners.Add(listener);
+            __traceSource.Listeners.Clear();
             return builder.TraceWith(__traceSource);
         }
 
-        public static ICluster CreateCluster() {
+        public static ICluster CreateCluster()
+        {
             var hasWritableServer = 0;
             var builder = ConfigureCluster();
             var cluster = builder.BuildCluster();
-            cluster.DescriptionChanged += (o, e) => {
+            cluster.DescriptionChanged += (o, e) =>
+            {
                 var anyWritableServer = e.NewClusterDescription.Servers.Any(
                     description => description.Type.IsWritable());
-                if (__traceSource != null) {
+                if (__traceSource != null)
+                {
                     __traceSource.TraceEvent(TraceEventType.Information, 0, $"CreateCluster: DescriptionChanged event handler called.");
                     __traceSource.TraceEvent(TraceEventType.Information, 0, $"CreateCluster: anyWritableServer = {anyWritableServer}.");
                     __traceSource.TraceEvent(TraceEventType.Information, 0, $"CreateCluster: new description: {e.NewClusterDescription.ToString()}.");
                 }
                 Interlocked.Exchange(ref hasWritableServer, anyWritableServer ? 1 : 0);
             };
-            if (__traceSource != null) {
+            if (__traceSource != null)
+            {
                 __traceSource.TraceEvent(TraceEventType.Information, 0, "CreateCluster: initializing cluster.");
             }
             cluster.Initialize();
 
             // wait until the cluster has connected to a writable server
             SpinWait.SpinUntil(() => Interlocked.CompareExchange(ref hasWritableServer, 0, 0) != 0, TimeSpan.FromSeconds(30));
-            if (Interlocked.CompareExchange(ref hasWritableServer, 0, 0) == 0) {
+            if (Interlocked.CompareExchange(ref hasWritableServer, 0, 0) == 0)
+            {
                 var message = string.Format(
                     "Test cluster has no writable server. Client view of the cluster is {0}.",
                     cluster.Description.ToString());
                 throw new Exception(message);
             }
 
-            if (__traceSource != null) {
+            if (__traceSource != null)
+            {
                 __traceSource.TraceEvent(TraceEventType.Information, 0, "CreateCluster: writable server found.");
             }
 
             return cluster;
         }
 
-        public static CollectionNamespace GetCollectionNamespaceForTestFixture() {
+        public static CollectionNamespace GetCollectionNamespaceForTestFixture()
+        {
             var testFixtureType = GetTestFixtureTypeFromCallStack();
             var collectionName = TruncateCollectionNameIfTooLong(__databaseNamespace, testFixtureType.Name);
             return new CollectionNamespace(__databaseNamespace, collectionName);
         }
 
-        public static CollectionNamespace GetCollectionNamespaceForTestMethod() {
+        public static CollectionNamespace GetCollectionNamespaceForTestMethod()
+        {
             var testMethodInfo = GetTestMethodInfoFromCallStack();
             var collectionName = TruncateCollectionNameIfTooLong(__databaseNamespace, testMethodInfo.DeclaringType.Name + "-" + testMethodInfo.Name);
             return new CollectionNamespace(__databaseNamespace, collectionName);
         }
 
-        private static ConnectionString GetConnectionString() {
+        private static ConnectionString GetConnectionString()
+        {
             return new ConnectionString(Environment.GetEnvironmentVariable("MONGO_URI") ?? "mongodb://localhost");
         }
 
-        private static DatabaseNamespace GetDatabaseNamespace() {
-            if (!string.IsNullOrEmpty(__connectionString.DatabaseName)) {
+        private static DatabaseNamespace GetDatabaseNamespace()
+        {
+            if (!string.IsNullOrEmpty(__connectionString.DatabaseName))
+            {
                 return new DatabaseNamespace(__connectionString.DatabaseName);
             }
 
@@ -190,65 +215,81 @@ namespace Grand.Services.Tests {
             return new DatabaseNamespace("Tests" + timestamp);
         }
 
-        public static DatabaseNamespace GetDatabaseNamespaceForTestFixture() {
+        public static DatabaseNamespace GetDatabaseNamespaceForTestFixture()
+        {
             var testFixtureType = GetTestFixtureTypeFromCallStack();
             var databaseName = TruncateDatabaseNameIfTooLong(__databaseNamespace.DatabaseName + "-" + testFixtureType.Name);
-            if (databaseName.Length >= 64) {
+            if (databaseName.Length >= 64)
+            {
                 databaseName = databaseName.Substring(0, 63);
             }
             return new DatabaseNamespace(databaseName);
         }
 
-        public static IReadBinding GetReadBinding() {
+        public static IReadBinding GetReadBinding()
+        {
             return GetReadBinding(ReadPreference.Primary);
         }
 
-        public static IReadBinding GetReadBinding(ReadPreference readPreference) {
+        public static IReadBinding GetReadBinding(ReadPreference readPreference)
+        {
             return new ReadPreferenceBinding(__cluster.Value, readPreference);
         }
 
-        public static IReadWriteBinding GetReadWriteBinding() {
+        public static IReadWriteBinding GetReadWriteBinding()
+        {
             return new WritableServerBinding(__cluster.Value);
         }
 
-        public static IEnumerable<string> GetModules() {
-            using (var binding = GetReadBinding()) {
+        public static IEnumerable<string> GetModules()
+        {
+            using (var binding = GetReadBinding())
+            {
                 var command = new BsonDocument("buildinfo", 1);
                 var operation = new ReadCommandOperation<BsonDocument>(DatabaseNamespace.Admin, command, BsonDocumentSerializer.Instance, __messageEncoderSettings);
                 var response = operation.Execute(binding, CancellationToken.None);
                 BsonValue modules;
-                if (response.TryGetValue("modules", out modules)) {
+                if (response.TryGetValue("modules", out modules))
+                {
                     return modules.AsBsonArray.Select(x => x.ToString());
                 }
-                else {
+                else
+                {
                     return Enumerable.Empty<string>();
                 }
             }
         }
 
-        public static string GetStorageEngine() {
-            using (var binding = GetReadWriteBinding()) {
+        public static string GetStorageEngine()
+        {
+            using (var binding = GetReadWriteBinding())
+            {
                 var command = new BsonDocument("serverStatus", 1);
                 var operation = new ReadCommandOperation<BsonDocument>(DatabaseNamespace.Admin, command, BsonDocumentSerializer.Instance, __messageEncoderSettings);
                 var response = operation.Execute(binding, CancellationToken.None);
                 BsonValue storageEngine;
-                if (response.TryGetValue("storageEngine", out storageEngine) && storageEngine.AsBsonDocument.Contains("name")) {
+                if (response.TryGetValue("storageEngine", out storageEngine) && storageEngine.AsBsonDocument.Contains("name"))
+                {
                     return storageEngine["name"].AsString;
                 }
-                else {
+                else
+                {
                     return "mmapv1";
                 }
             }
         }
 
-        private static Type GetTestFixtureTypeFromCallStack() {
+        private static Type GetTestFixtureTypeFromCallStack()
+        {
             var stackTrace = new StackTrace();
-            for (var index = 0; index < stackTrace.FrameCount; index++) {
+            for (var index = 0; index < stackTrace.FrameCount; index++)
+            {
                 var frame = stackTrace.GetFrame(index);
                 var methodInfo = frame.GetMethod();
                 var declaringType = methodInfo.DeclaringType;
                 var testFixtureAttribute = declaringType.GetCustomAttribute<TestFixtureAttribute>(inherit: false);
-                if (testFixtureAttribute != null) {
+                if (testFixtureAttribute != null)
+                {
                     return declaringType;
                 }
             }
@@ -256,18 +297,23 @@ namespace Grand.Services.Tests {
             throw new Exception("No [TestFixture] found on the call stack.");
         }
 
-        private static MethodInfo GetTestMethodInfoFromCallStack() {
+        private static MethodInfo GetTestMethodInfoFromCallStack()
+        {
             var stackTrace = new StackTrace();
-            for (var index = 0; index < stackTrace.FrameCount; index++) {
+            for (var index = 0; index < stackTrace.FrameCount; index++)
+            {
                 var frame = stackTrace.GetFrame(index);
                 var methodInfo = frame.GetMethod() as MethodInfo;
-                if (methodInfo != null) {
+                if (methodInfo != null)
+                {
                     var testAttribute = methodInfo.GetCustomAttribute<TestAttribute>(inherit: false);
-                    if (testAttribute != null) {
+                    if (testAttribute != null)
+                    {
                         return methodInfo;
                     }
                     var testCaseAttribute = methodInfo.GetCustomAttribute<TestCaseAttribute>(inherit: false);
-                    if (testCaseAttribute != null) {
+                    if (testCaseAttribute != null)
+                    {
                         return methodInfo;
                     }
                 }
@@ -276,38 +322,48 @@ namespace Grand.Services.Tests {
             throw new Exception("No [TestFixture] found on the call stack.");
         }
 
-        private static string TruncateCollectionNameIfTooLong(DatabaseNamespace databaseNamespace, string collectionName) {
+        private static string TruncateCollectionNameIfTooLong(DatabaseNamespace databaseNamespace, string collectionName)
+        {
             var fullNameLength = databaseNamespace.DatabaseName.Length + 1 + collectionName.Length;
-            if (fullNameLength < 123) {
+            if (fullNameLength < 123)
+            {
                 return collectionName;
             }
-            else {
+            else
+            {
                 var maxCollectionNameLength = 123 - (databaseNamespace.DatabaseName.Length + 1);
                 return collectionName.Substring(0, maxCollectionNameLength);
             }
         }
 
-        private static string TruncateDatabaseNameIfTooLong(string databaseName) {
-            if (databaseName.Length < 64) {
+        private static string TruncateDatabaseNameIfTooLong(string databaseName)
+        {
+            if (databaseName.Length < 64)
+            {
                 return databaseName;
             }
-            else {
+            else
+            {
                 return databaseName.Substring(0, 63);
             }
         }
         #endregion
 
         // methods
-        private static void DropDatabase() {
+        private static void DropDatabase()
+        {
             var operation = new DropDatabaseOperation(__databaseNamespace, __messageEncoderSettings);
 
-            using (var binding = GetReadWriteBinding()) {
+            using (var binding = GetReadWriteBinding())
+            {
                 operation.Execute(binding, CancellationToken.None);
             }
         }
 
-        public static void TearDown() {
-            if (__cluster.IsValueCreated) {
+        public static void TearDown()
+        {
+            if (__cluster.IsValueCreated)
+            {
                 // TODO: DropDatabase
                 //DropDatabase();
                 __cluster.Value.Dispose();

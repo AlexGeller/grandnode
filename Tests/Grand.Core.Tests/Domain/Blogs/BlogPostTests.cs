@@ -1,12 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Domain.Blogs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Core.Domain.Blogs.Tests {
+namespace Grand.Core.Domain.Blogs.Tests
+{
     [TestClass()]
     public class BlogPostTests {
         [TestMethod()]

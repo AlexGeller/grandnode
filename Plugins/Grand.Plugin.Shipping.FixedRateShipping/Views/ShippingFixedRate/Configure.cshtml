@@ -1,5 +1,5 @@
 ﻿@{
-    Layout = "";
+    Layout = "_ConfigurePlugin";
 }
 @Html.AntiForgeryToken()
 <table class="adminContent">
@@ -14,13 +14,13 @@
                             type: "json",
                             transport: {
                                 read: {
-                                    url: "@Html.Raw(Url.Action("Configure", "ShippingFixedRate", new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Shipping.FixedRateShipping.Controllers" }, { "area", "" } }))",
+                                    url: "@Html.Raw(Url.Action("Configure", "ShippingFixedRate"))",
                                     type: "POST",
                                     dataType: "json",
                                     data: addAntiForgeryToken
                                 },
                                 update: {
-                                    url:"@Html.Raw(Url.Action("ShippingRateUpdate", "ShippingFixedRate", new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Shipping.FixedRateShipping.Controllers" }, { "area", "" } }))",
+                                    url:"@Html.Raw(Url.Action("ShippingRateUpdate", "ShippingFixedRate"))",
                                     type: "POST",
                                     dataType: "json",
                                     data: addAntiForgeryToken

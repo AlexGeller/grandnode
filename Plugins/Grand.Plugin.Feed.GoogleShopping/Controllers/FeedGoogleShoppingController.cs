@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Domain.Stores;
 using Grand.Core.Plugins;
+using Grand.Framework.Controllers;
+using Grand.Framework.Kendoui;
+using Grand.Framework.Mvc;
+using Grand.Framework.Mvc.Filters;
+using Grand.Framework.Security;
 using Grand.Plugin.Feed.GoogleShopping.Domain;
 using Grand.Plugin.Feed.GoogleShopping.Models;
 using Grand.Plugin.Feed.GoogleShopping.Services;
@@ -16,14 +16,16 @@ using Grand.Services.Localization;
 using Grand.Services.Logging;
 using Grand.Services.Security;
 using Grand.Services.Stores;
-using Grand.Web.Framework.Controllers;
-using Grand.Web.Framework.Kendoui;
-using Grand.Web.Framework.Mvc;
-using Grand.Web.Framework.Security;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Grand.Plugin.Feed.GoogleShopping.Controllers
 {
-    [AdminAuthorize]
+    [Area("Admin")]
+    [AuthorizeAdmin]
     public class FeedGoogleShoppingController : BasePluginController
     {
         private readonly IGoogleService _googleService;
@@ -63,8 +65,7 @@ namespace Grand.Plugin.Feed.GoogleShopping.Controllers
             this._permissionService = permissionService;
         }
 
-        [ChildActionOnly]
-        public ActionResult Configure()
+        public IActionResult Configure()
         {
             var model = new FeedGoogleShoppingModel();
             model.ProductPictureSize = _GoogleShoppingSettings.ProductPictureSize;
@@ -89,7 +90,8 @@ namespace Grand.Plugin.Feed.GoogleShopping.Controllers
             //file paths
             foreach (var store in _storeService.GetAllStores())
             {
-                var localFilePath = System.IO.Path.Combine(HttpRuntime.AppDomainAppPath, "content\\files\\exportimport", store.Id + "-" + _GoogleShoppingSettings.StaticFileName);
+                var appPath = CommonHelper.MapPath("wwwroot/content/files/exportimport");
+                var localFilePath = System.IO.Path.Combine(appPath, store.Id + "-" + _GoogleShoppingSettings.StaticFileName);           
                 if (System.IO.File.Exists(localFilePath))
                     model.GeneratedFiles.Add(new FeedGoogleShoppingModel.GeneratedFileModel
                     {
@@ -98,13 +100,12 @@ namespace Grand.Plugin.Feed.GoogleShopping.Controllers
                     });
             }
 
-            return View("~/Plugins/Feed.GoogleShopping/Views/FeedGoogleShopping/Configure.cshtml", model);
+            return View("~/Plugins/Feed.GoogleShopping/netcoreapp2.0/Views/FeedGoogleShopping/Configure.cshtml", model);
         }
 
         [HttpPost]
-        [ChildActionOnly]
         [FormValueRequired("save")]
-        public ActionResult Configure(FeedGoogleShoppingModel model)
+        public IActionResult Configure(FeedGoogleShoppingModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -128,9 +129,8 @@ namespace Grand.Plugin.Feed.GoogleShopping.Controllers
         }
 
         [HttpPost, ActionName("Configure")]
-        [ChildActionOnly]
         [FormValueRequired("generate")]
-        public ActionResult GenerateFeed(FeedGoogleShoppingModel model)
+        public IActionResult GenerateFeed(FeedGoogleShoppingModel model)
         {
             try
             {
@@ -166,7 +166,7 @@ namespace Grand.Plugin.Feed.GoogleShopping.Controllers
 
         [HttpPost]
         [AdminAntiForgery]
-        public ActionResult GoogleProductList(DataSourceRequest command)
+        public IActionResult GoogleProductList(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return Content("Access denied");
@@ -203,12 +203,12 @@ namespace Grand.Plugin.Feed.GoogleShopping.Controllers
                 Total = products.TotalCount
             };
 
-            return Json(gridModel);
+            return new JsonResult(gridModel);
         }
 
         [HttpPost]
         [AdminAntiForgery]
-        public ActionResult GoogleProductUpdate(FeedGoogleShoppingModel.GoogleProductModel model)
+        public IActionResult GoogleProductUpdate(FeedGoogleShoppingModel.GoogleProductModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return Content("Access denied");

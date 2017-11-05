@@ -1,9 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Catalog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Catalog;
@@ -15,12 +10,13 @@ using Grand.Services.Events;
 using Grand.Services.Localization;
 using Grand.Services.Media;
 using Grand.Services.Tax;
-using Moq;
-using MongoDB.Driver;
 using Grand.Services.Tests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 
-namespace Grand.Services.Catalog.Tests {
+namespace Grand.Services.Catalog.Tests
+{
     [TestClass()]
     public class ProductAttributeParserTests {
         private IRepository<ProductAttribute> _productAttributeRepo;

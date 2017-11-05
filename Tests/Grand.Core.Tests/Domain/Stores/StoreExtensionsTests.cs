@@ -1,12 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Domain.Stores;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Core.Domain.Stores.Tests {
+namespace Grand.Core.Domain.Stores.Tests
+{
     [TestClass()]
     public class StoreExtensionsTests {
         [TestMethod()]

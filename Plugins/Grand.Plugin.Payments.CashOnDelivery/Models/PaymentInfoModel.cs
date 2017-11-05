@@ -1,4 +1,4 @@
-﻿using Grand.Web.Framework.Mvc;
+﻿using Grand.Framework.Mvc.Models;
 
 namespace Grand.Plugin.Payments.CashOnDelivery.Models
 {

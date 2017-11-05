@@ -1,13 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Domain.Customers;
-using Grand.Core.Domain.Common;
-using System;
-using System.Collections.Generic;
+﻿using Grand.Core.Domain.Common;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Core.Domain.Customers.Tests {
+namespace Grand.Core.Domain.Customers.Tests
+{
     [TestClass()]
     public class CustomerTests {
         [TestMethod()]

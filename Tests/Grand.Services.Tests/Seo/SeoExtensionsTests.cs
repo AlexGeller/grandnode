@@ -1,20 +1,17 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Seo;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Services.Seo.Tests {
+namespace Grand.Services.Seo.Tests
+{
     [TestClass()]
-    public class SeoExtensionsTests {
+    public class SeoExtensionsTests
+    {
         [TestMethod()]
-        public void SeoExtensionsTest() {
-           
+        public void SeoExtensionsTest()
+        {
+
             //german letters with diacritics
-            Assert.AreEqual("testaou", SeoExtensions.GetSeName("testäöü",true,false));
-            Assert.AreEqual("test", SeoExtensions.GetSeName("testäöü",false,false));
+            Assert.AreEqual("testaou", SeoExtensions.GetSeName("testäöü", true, false));
+            Assert.AreEqual("test", SeoExtensions.GetSeName("testäöü", false, false));
             //russian letters           
             Assert.AreEqual("testtest", SeoExtensions.GetSeName("testтест", true, false));
             Assert.AreEqual("test", SeoExtensions.GetSeName("testтест", false, false));
@@ -27,7 +24,7 @@ namespace Grand.Services.Seo.Tests {
 
             Assert.AreEqual("test-test", SeoExtensions.GetSeName("test test", false, false));
             Assert.AreEqual("test-test", SeoExtensions.GetSeName("test     test", false, false));
-       
+
         }
     }
 }

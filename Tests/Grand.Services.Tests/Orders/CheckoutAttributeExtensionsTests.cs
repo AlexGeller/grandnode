@@ -1,14 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Orders;
-using System;
+﻿using Grand.Core.Domain.Orders;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core.Domain.Orders;
 
-
-namespace Grand.Services.Orders.Tests {
+namespace Grand.Services.Orders.Tests
+{
     [TestClass()]
     public class CheckoutAttributeExtensionsTests {
         [TestMethod()]

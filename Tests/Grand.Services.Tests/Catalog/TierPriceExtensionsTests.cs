@@ -1,13 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Catalog;
-using System;
+﻿using Grand.Core.Domain.Catalog;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core.Domain.Catalog;
 
-namespace Grand.Services.Catalog.Tests {
+namespace Grand.Services.Catalog.Tests
+{
     [TestClass()]
     public class TierPriceExtensionsTests {
         [TestMethod()]

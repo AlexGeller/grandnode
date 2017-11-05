@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Web.Routing;
+using Grand.Core;
 using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Payments;
 using Grand.Core.Plugins;
@@ -9,6 +7,9 @@ using Grand.Services.Configuration;
 using Grand.Services.Localization;
 using Grand.Services.Orders;
 using Grand.Services.Payments;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Payments.CashOnDelivery
 {
@@ -18,28 +19,40 @@ namespace Grand.Plugin.Payments.CashOnDelivery
     public class CashOnDeliveryPaymentProcessor : BasePlugin, IPaymentMethod
     {
         #region Fields
+
         private readonly CashOnDeliveryPaymentSettings _cashOnDeliveryPaymentSettings;
         private readonly ISettingService _settingService;
         private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         private readonly ILocalizationService _localizationService;
+        private readonly IWebHelper _webHelper;
+
         #endregion
 
         #region Ctor
 
         public CashOnDeliveryPaymentProcessor(CashOnDeliveryPaymentSettings cashOnDeliveryPaymentSettings,
             ISettingService settingService, IOrderTotalCalculationService orderTotalCalculationService,
-            ILocalizationService localizationService)
+            ILocalizationService localizationService, IWebHelper webHelper)
         {
             this._cashOnDeliveryPaymentSettings = cashOnDeliveryPaymentSettings;
             this._settingService = settingService;
             this._orderTotalCalculationService = orderTotalCalculationService;
             this._localizationService = localizationService;
+            this._webHelper = webHelper;
         }
 
         #endregion
-        
+
         #region Methods
-        
+
+        /// <summary>
+        /// Gets a configuration page URL
+        /// </summary>
+        public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/PaymentCashOnDelivery/Configure";
+        }
+
         /// <summary>
         /// Process a payment
         /// </summary>
@@ -164,32 +177,6 @@ namespace Grand.Plugin.Payments.CashOnDelivery
             return false;
         }
 
-        /// <summary>
-        /// Gets a route for provider configuration
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
-        {
-            actionName = "Configure";
-            controllerName = "PaymentCashOnDelivery";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Payments.CashOnDelivery.Controllers" }, { "area", null } };
-        }
-
-        /// <summary>
-        /// Gets a route for payment info
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetPaymentInfoRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
-        {
-            actionName = "PaymentInfo";
-            controllerName = "PaymentCashOnDelivery";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Payments.CashOnDelivery.Controllers" }, { "area", null } };
-        }
-
         public Type GetControllerType()
         {
             return typeof(PaymentCashOnDeliveryController);
@@ -213,10 +200,10 @@ namespace Grand.Plugin.Payments.CashOnDelivery
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired", "Shippable product required");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired.Hint", "An option indicating whether shippable products are required in order to display this payment method during checkout.");
 
-            
+
             base.Install();
         }
-        
+
         public override void Uninstall()
         {
             //settings
@@ -232,8 +219,25 @@ namespace Grand.Plugin.Payments.CashOnDelivery
             this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFeePercentage.Hint");
             this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired");
             this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired.Hint");
-            
+
             base.Uninstall();
+        }
+
+        public IList<string> ValidatePaymentForm(IFormCollection form)
+        {
+            var warnings = new List<string>();
+            return warnings;
+        }
+
+        public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
+        {
+            var paymentInfo = new ProcessPaymentRequest();
+            return paymentInfo;
+        }
+
+        public void GetPublicViewComponent(out string viewComponentName)
+        {
+            viewComponentName = "PaymentCashOnDelivery";
         }
 
         #endregion

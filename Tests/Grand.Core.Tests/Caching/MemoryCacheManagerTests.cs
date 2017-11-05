@@ -1,22 +1,27 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Grand.Core.Caching.Tests {
+namespace Grand.Core.Caching.Tests
+{
     [TestClass()]
-    public class MemoryCacheManagerTests {
+    public class MemoryCacheManagerTests
+    {
         [TestMethod()]
-        public void set_and_get_example_data_by_passing_specified_key() {
+        public void Set_and_get_example_data_by_passing_specified_key()
+        {
             string key = "exampleKey01";
             byte data = 255;
             int cacheTime = int.MaxValue;
-            MemoryCacheManager memoryCacheManager = new MemoryCacheManager();
+            MemoryCacheManager memoryCacheManager = new MemoryCacheManager(new MemoryCache(new MemoryCacheOptions { }));
 
             memoryCacheManager.Set(key, data, cacheTime);
             Assert.AreEqual(memoryCacheManager.Get<byte>(key), data);
         }
 
         [TestMethod()]
-        public void IsSetTest() {
-            MemoryCacheManager memoryCacheManager = new MemoryCacheManager();
+        public void IsSetTest()
+        {
+            MemoryCacheManager memoryCacheManager = new MemoryCacheManager(new MemoryCache(new MemoryCacheOptions { }));
             memoryCacheManager.Set("exampleKey05", 0, int.MaxValue);
 
             Assert.IsTrue(memoryCacheManager.IsSet("exampleKey05"));
@@ -24,8 +29,9 @@ namespace Grand.Core.Caching.Tests {
         }
 
         [TestMethod()]
-        public void removing_one_item_of_Cache() {
-            MemoryCacheManager memoryCacheManager = new MemoryCacheManager();
+        public void Removing_one_item_of_Cache()
+        {
+            MemoryCacheManager memoryCacheManager = new MemoryCacheManager(new MemoryCache(new MemoryCacheOptions { }));
             memoryCacheManager.Set("exampleKey15", 5, int.MaxValue);
 
             Assert.IsTrue(memoryCacheManager.IsSet("exampleKey15"));
@@ -34,8 +40,9 @@ namespace Grand.Core.Caching.Tests {
         }
 
         [TestMethod()]
-        public void clearing_whole_Cache() {
-            MemoryCacheManager memoryCacheManager = new MemoryCacheManager();
+        public void Clearing_whole_Cache()
+        {
+            MemoryCacheManager memoryCacheManager = new MemoryCacheManager(new MemoryCache(new MemoryCacheOptions { }));
             memoryCacheManager.Set("exampleKey25", 5, int.MaxValue);
             memoryCacheManager.Set("exampleKey35", 5, int.MaxValue);
 
@@ -49,8 +56,9 @@ namespace Grand.Core.Caching.Tests {
         }
 
         [TestMethod()]
-        public void RemoveByPatternTest() {
-            MemoryCacheManager memoryCacheManager = new MemoryCacheManager();
+        public void RemoveByPatternTest()
+        {
+            MemoryCacheManager memoryCacheManager = new MemoryCacheManager(new MemoryCache(new MemoryCacheOptions { }));
             memoryCacheManager.Set("exampleKey025", 5, int.MaxValue);
             memoryCacheManager.Set("exampleKey026", 5, int.MaxValue);
             memoryCacheManager.Set("exampleKey027", 5, int.MaxValue);

@@ -1,16 +1,20 @@
-﻿using System;
-using System.Web.Routing;
+﻿using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Shipping;
 using Grand.Core.Plugins;
 using Grand.Services.Shipping;
 using Grand.Services.Shipping.Tracking;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using System;
 using System.Collections.Generic;
-using Grand.Core.Domain.Orders;
-using System.Web.Mvc;
 
-namespace Grand.Services.Tests.Shipping {
-    public class FixedRateTestShippingRateComputationMethod : BasePlugin, IShippingRateComputationMethod {
-        private decimal GetRate() {
+namespace Grand.Services.Tests.Shipping
+{
+    public class FixedRateTestShippingRateComputationMethod : BasePlugin, IShippingRateComputationMethod
+    {
+        private decimal GetRate()
+        {
             decimal rate = 10M;
             return rate;
         }
@@ -20,17 +24,20 @@ namespace Grand.Services.Tests.Shipping {
         /// </summary>
         /// <param name="getShippingOptionRequest">A request for getting shipping options</param>
         /// <returns>Represents a response of getting shipping rate options</returns>
-        public GetShippingOptionResponse GetShippingOptions(GetShippingOptionRequest getShippingOptionRequest) {
+        public GetShippingOptionResponse GetShippingOptions(GetShippingOptionRequest getShippingOptionRequest)
+        {
             if (getShippingOptionRequest == null)
                 throw new ArgumentNullException("getShippingOptionRequest");
 
             var response = new GetShippingOptionResponse();
-            response.ShippingOptions.Add(new ShippingOption {
+            response.ShippingOptions.Add(new ShippingOption
+            {
                 Name = "Shipping option 1",
                 Description = "",
                 Rate = GetRate()
             });
-            response.ShippingOptions.Add(new ShippingOption {
+            response.ShippingOptions.Add(new ShippingOption
+            {
                 Name = "Shipping option 2",
                 Description = "",
                 Rate = GetRate()
@@ -44,7 +51,8 @@ namespace Grand.Services.Tests.Shipping {
         /// </summary>
         /// <param name="getShippingOptionRequest">A request for getting shipping options</param>
         /// <returns>Fixed shipping rate; or null in case there's no fixed shipping rate</returns>
-        public decimal? GetFixedRate(GetShippingOptionRequest getShippingOptionRequest) {
+        public decimal? GetFixedRate(GetShippingOptionRequest getShippingOptionRequest)
+        {
             if (getShippingOptionRequest == null)
                 throw new ArgumentNullException("getShippingOptionRequest");
 
@@ -74,8 +82,10 @@ namespace Grand.Services.Tests.Shipping {
         /// <summary>
         /// Gets a shipping rate computation method type
         /// </summary>
-        public ShippingRateComputationMethodType ShippingRateComputationMethodType {
-            get {
+        public ShippingRateComputationMethodType ShippingRateComputationMethodType
+        {
+            get
+            {
                 return ShippingRateComputationMethodType.Offline;
             }
         }
@@ -86,16 +96,28 @@ namespace Grand.Services.Tests.Shipping {
         /// <param name="actionName">Action name</param>
         /// <param name="controllerName">Controller name</param>
         /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues) {
+        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
+        {
             actionName = null;
             controllerName = null;
             routeValues = null;
         }
 
+        public IList<string> ValidateShippingForm(IFormCollection form)
+        {
+            return new List<string>();
+        }
+
+        public void GetPublicViewComponent(out string viewComponentName)
+        {
+            viewComponentName = "";
+        }
+
         /// <summary>
         /// Gets a shipment tracker
         /// </summary>
-        public IShipmentTracker ShipmentTracker {
+        public IShipmentTracker ShipmentTracker
+        {
             get { return null; }
         }
         #endregion

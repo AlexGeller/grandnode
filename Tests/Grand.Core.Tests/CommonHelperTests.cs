@@ -1,15 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core;
-using Grand.Core.ComponentModel;
-using Grand.Core.Domain.Shipping;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Core.Tests {
+namespace Grand.Core.Tests
+{
     [TestClass()]
     public class CommonHelperTests {
         [TestMethod()]

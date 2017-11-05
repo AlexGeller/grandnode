@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Web;
-using System.Web.Routing;
-using System.Xml;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Domain.Catalog;
 using Grand.Core.Domain.Directory;
+using Grand.Core.Domain.Media;
+using Grand.Core.Domain.Security;
 using Grand.Core.Domain.Stores;
 using Grand.Core.Plugins;
 using Grand.Plugin.Feed.GoogleShopping.Services;
@@ -21,7 +14,17 @@ using Grand.Services.Localization;
 using Grand.Services.Media;
 using Grand.Services.Seo;
 using Grand.Services.Tax;
-using Grand.Core.Domain.Media;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Web;
+using System.Xml;
 
 namespace Grand.Plugin.Feed.GoogleShopping
 {
@@ -42,16 +45,19 @@ namespace Grand.Plugin.Feed.GoogleShopping
         private readonly IWorkContext _workContext;
         private readonly IMeasureService _measureService;
         private readonly MeasureSettings _measureSettings;
-        private readonly GoogleShoppingSettings _GoogleShoppingSettings;
+        private readonly GoogleShoppingSettings _googleShoppingSettings;
         private readonly CurrencySettings _currencySettings;
         private readonly MediaSettings _mediaSettings;
-
+        private readonly SecuritySettings _securitySettings;
+        private readonly IWebHelper _webHelper;
+        private readonly IUrlHelperFactory _urlHelperFactory;
+        private readonly IActionContextAccessor _actionContextAccessor;
         #endregion
 
         #region Ctor
         public GoogleShoppingService(IGoogleService googleService,
             IPriceCalculationService priceCalculationService,
-            ITaxService taxService, 
+            ITaxService taxService,
             IProductService productService,
             ICategoryService categoryService,
             IManufacturerService manufacturerService,
@@ -62,9 +68,13 @@ namespace Grand.Plugin.Feed.GoogleShopping
             IWorkContext workContext,
             IMeasureService measureService,
             MeasureSettings measureSettings,
-            GoogleShoppingSettings GoogleShoppingSettings,
+            GoogleShoppingSettings googleShoppingSettings,
             CurrencySettings currencySettings,
-            MediaSettings mediaSettings)
+            MediaSettings mediaSettings,
+            SecuritySettings securitySettings,
+            IWebHelper webHelper,
+            IUrlHelperFactory urlHelperFactory,
+            IActionContextAccessor actionContextAccessor)
         {
             this._googleService = googleService;
             this._priceCalculationService = priceCalculationService;
@@ -79,9 +89,13 @@ namespace Grand.Plugin.Feed.GoogleShopping
             this._workContext = workContext;
             this._measureService = measureService;
             this._measureSettings = measureSettings;
-            this._GoogleShoppingSettings = GoogleShoppingSettings;
+            this._googleShoppingSettings = googleShoppingSettings;
             this._currencySettings = currencySettings;
             this._mediaSettings = mediaSettings;
+            this._securitySettings = securitySettings;
+            this._webHelper = webHelper;
+            this._urlHelperFactory = urlHelperFactory;
+            this._actionContextAccessor = actionContextAccessor;
         }
 
         #endregion
@@ -119,7 +133,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
             //input = input.Replace("™", "");
             //input = input.Replace("®", "");
             //input = input.Replace("°", "");
-            
+
             if (isHtmlEncoded)
                 input = HttpUtility.HtmlEncode(input);
 
@@ -127,27 +141,31 @@ namespace Grand.Plugin.Feed.GoogleShopping
         }
         private Currency GetUsedCurrency()
         {
-            var currency = _currencyService.GetCurrencyById(_GoogleShoppingSettings.CurrencyId);
+            var currency = _currencyService.GetCurrencyById(_googleShoppingSettings.CurrencyId);
             if (currency == null || !currency.Published)
                 currency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             return currency;
         }
-        
-        #endregion
 
-        #region Methods
-
-        /// <summary>
-        /// Gets a route for provider configuration
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
+        private IUrlHelper GetUrlHelper()
         {
-            actionName = "Configure";
-            controllerName = "FeedGoogleShopping";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Feed.GoogleShopping.Controllers" }, { "area", null } };
+            return _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        }
+        protected virtual string GetHttpProtocol()
+        {
+            return _securitySettings.ForceSslForAllPages? "https" : "http";
+        }
+
+    #endregion
+
+    #region Methods
+
+    /// <summary>
+    /// Gets a configuration page URL
+    /// </summary>
+    public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/FeedGoogleShopping/Configure";
         }
 
         /// <summary>
@@ -170,7 +188,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
             {
                 Encoding = Encoding.UTF8
             };
-            
+
             //language
             var languageId = "";
             var languages = _languageService.GetAllLanguages(storeId: store.Id);
@@ -263,7 +281,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
                         if (googleProduct != null)
                             googleProductCategory = googleProduct.Taxonomy;
                         if (String.IsNullOrEmpty(googleProductCategory))
-                            googleProductCategory = _GoogleShoppingSettings.DefaultGoogleCategory;
+                            googleProductCategory = _googleShoppingSettings.DefaultGoogleCategory;
                         if (String.IsNullOrEmpty(googleProductCategory))
                             throw new GrandException("Default Google category is not set");
                         writer.WriteStartElement("g", "google_product_category", googleBaseNamespace);
@@ -274,7 +292,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
                         if (product.ProductCategories.Count > 0)
                         {
                             var defaultProductCategory = _categoryService.GetCategoryById(product.ProductCategories.FirstOrDefault().CategoryId);
-                                
+
                             if (defaultProductCategory != null)
                             {
                                 //TODO localize categories
@@ -289,21 +307,24 @@ namespace Grand.Plugin.Feed.GoogleShopping
                             }
                         }
                         //link [link] - URL directly linking to your item's page on your website
-                        var productUrl = string.Format("{0}{1}", store.Url, product.GetSeName(languageId));
+                        var productUrl = GetUrlHelper().RouteUrl("Product", new { SeName = product.GetSeName(languageId) }, GetHttpProtocol());
                         writer.WriteElementString("link", productUrl);
 
                         //image link [image_link] - URL of an image of the item
                         //additional images [additional_image_link]
                         //up to 10 pictures
                         const int maximumPictures = 10;
-                        var pictures = product.ProductPictures.Take(maximumPictures).ToList(); 
+                        var storeLocation = _securitySettings.ForceSslForAllPages ? 
+                            (!string.IsNullOrWhiteSpace(store.SecureUrl) ? store.SecureUrl : store.Url.Replace("http://", "https://")) : 
+                            store.Url;
+
+                        var pictures = product.ProductPictures.Take(maximumPictures).ToList();
                         for (int i = 0; i < pictures.Count; i++)
                         {
                             var picture = pictures[i];
                             var imageUrl = _pictureService.GetPictureUrl(picture.PictureId,
-                                _mediaSettings.ApplyWatermarkForProduct,
-                                _GoogleShoppingSettings.ProductPictureSize,
-                                storeLocation: store.Url);
+                                _googleShoppingSettings.ProductPictureSize,
+                                storeLocation: storeLocation);
 
                             if (i == 0)
                             {
@@ -319,14 +340,14 @@ namespace Grand.Plugin.Feed.GoogleShopping
                         if (pictures.Count == 0)
                         {
                             //no picture? submit a default one
-                            var imageUrl = _pictureService.GetDefaultPictureUrl(_GoogleShoppingSettings.ProductPictureSize, storeLocation: store.Url);
+                            var imageUrl = _pictureService.GetDefaultPictureUrl(_googleShoppingSettings.ProductPictureSize, storeLocation: storeLocation);
                             writer.WriteElementString("g", "image_link", googleBaseNamespace, imageUrl);
                         }
 
                         //condition [condition] - Condition or state of the item
                         writer.WriteElementString("g", "condition", googleBaseNamespace, "new");
 
-                        writer.WriteElementString("g", "expiration_date", googleBaseNamespace, DateTime.Now.AddDays(_GoogleShoppingSettings.ExpirationNumberOfDays).ToString("yyyy-MM-dd"));
+                        writer.WriteElementString("g", "expiration_date", googleBaseNamespace, DateTime.Now.AddDays(_googleShoppingSettings.ExpirationNumberOfDays).ToString("yyyy-MM-dd"));
 
                         #endregion
 
@@ -352,7 +373,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
                         //price [price] - Price of the item
                         var currency = GetUsedCurrency();
                         decimal finalPriceBase;
-                        if (_GoogleShoppingSettings.PricesConsiderPromotions)
+                        if (_googleShoppingSettings.PricesConsiderPromotions)
                         {
                             //calculate for the maximum quantity (in case if we have tier prices)
                             decimal minPossiblePrice = _priceCalculationService.GetFinalPrice(product,
@@ -470,7 +491,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
 
                         //shipping weight [shipping_weight] - Weight of the item for shipping
                         //We accept only the following units of weight: lb, oz, g, kg.
-                        if (_GoogleShoppingSettings.PassShippingInfoWeight)
+                        if (_googleShoppingSettings.PassShippingInfoWeight)
                         {
                             string weightName;
                             var shippingWeight = product.Weight;
@@ -500,7 +521,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
                         //shipping width [shipping_width] - Width of the item for shipping
                         //shipping height [shipping_height] - Height of the item for shipping
                         //We accept only the following units of length: in, cm
-                        if (_GoogleShoppingSettings.PassShippingInfoDimensions)
+                        if (_googleShoppingSettings.PassShippingInfoDimensions)
                         {
                             string dimensionName;
                             var length = product.Length;
@@ -512,7 +533,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
                                 case "inches":
                                     dimensionName = "in";
                                     break;
-                                    //TODO support other dimensions (convert to cm)
+                                //TODO support other dimensions (convert to cm)
                                 default:
                                     //unknown dimension 
                                     throw new Exception("Not supported dimension. Google accepts the following units: in, cm.");
@@ -550,8 +571,8 @@ namespace Grand.Plugin.Feed.GoogleShopping
                 ExpirationNumberOfDays = 28
             };
             _settingService.SaveSetting(settings);
-            
-            
+
+
 
             //locales
             this.AddOrUpdatePluginLocaleResource("Plugins.Feed.GoogleShopping.Store", "Store");
@@ -593,7 +614,7 @@ namespace Grand.Plugin.Feed.GoogleShopping
             //settings
             _settingService.DeleteSetting<GoogleShoppingSettings>();
 
-            
+
             //locales
             this.DeletePluginLocaleResource("Plugins.Feed.GoogleShopping.Store");
             this.DeletePluginLocaleResource("Plugins.Feed.GoogleShopping.Store.Hint");
@@ -625,16 +646,17 @@ namespace Grand.Plugin.Feed.GoogleShopping
 
             base.Uninstall();
         }
-        
+
         /// <summary>
         /// Generate a static file for GoogleShopping
         /// </summary>
         /// <param name="store">Store</param>
         public virtual void GenerateStaticFile(Store store)
         {
+            var appPath = CommonHelper.MapPath("wwwroot/content/files/exportimport");
             if (store == null)
                 throw new ArgumentNullException("store");
-            string filePath = Path.Combine(HttpRuntime.AppDomainAppPath, "content\\files\\exportimport", store.Id + "-" + _GoogleShoppingSettings.StaticFileName);
+            string filePath = Path.Combine(appPath, store.Id + "-" + _googleShoppingSettings.StaticFileName);
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
             {
                 GenerateFeed(fs, store);

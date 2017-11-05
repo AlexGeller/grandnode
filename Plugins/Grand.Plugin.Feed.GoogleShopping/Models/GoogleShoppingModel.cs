@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Web.Mvc;
-using Grand.Web.Framework;
-using Grand.Web.Framework.Mvc;
+﻿using Grand.Framework.Mvc.ModelBinding;
+using Grand.Framework.Mvc.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Feed.GoogleShopping.Models
 {

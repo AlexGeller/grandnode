@@ -1,10 +1,10 @@
 ﻿@{
-    Layout = "";
+    Layout = "_ConfigurePlugin";
 }
 @model ConfigurationModel
 @using Grand.Plugin.Payments.PayPalStandard.Models;
-@using Grand.Web.Framework;
-@Html.Action("StoreScopeConfiguration", "Setting", new { area = "Admin" })
+@using Grand.Framework;
+@await Component.InvokeAsync("StoreScopeConfiguration")
 
 <script type="text/javascript">
 	$(document).ready(function () {
@@ -26,7 +26,6 @@
 
 
 </script>
-
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
@@ -53,7 +52,7 @@
                 4. Under Auto Return for Website Payments, click the On radio button.
                 <br />
                 5. For the Return URL, enter the URL on your site that will receive the transaction
-                ID posted by PayPal after a customer payment (http://www.yourStore.com/Plugins/PaymentPayPalStandard/PDTHandler).
+                ID posted by PayPal after a customer payment (http://www.yourStore.com/Admin/PaymentPayPalStandard/PDTHandler).
                 <br />
                 6. Under Payment Data Transfer, click the On radio button.
                 <br />
@@ -67,7 +66,6 @@
                 <br />
                 <br />
                 <b>Two ways to be able to receive IPN messages (optional, new Dictionary<string, object> { { "class", "control-label" } }, false)</b>
-
                 <br />
                 <br />
                 <b>The first way is to check 'Enable IPN' below.</b> It will include in the request the url of you IPN handler
@@ -84,18 +82,17 @@
                 <br />
                 4. Click the 'Edit IPN Settings' button to update your settings.
                 <br />
-                5. Select 'Receive IPN messages' (Enabled) and enter the URL of your IPN handler (http://www.yourStore.com/Plugins/PaymentPayPalStandard/IPNHandler).
+                5. Select 'Receive IPN messages' (Enabled) and enter the URL of your IPN handler (http://www.yourStore.com/Admin/PaymentPayPalStandard/IPNHandler).
                 <br />
                 6. Click Save, and you should get a message that you have successfully activated IPN.
             </div>
-
             <div class="form-group">
                 <div class="col-md-3 col-sm-3 text-right">
                     @Html.OverrideStoreCheckboxFor(model => model.UseSandbox_OverrideForStore, model => model.UseSandbox, Model.ActiveStoreScopeConfiguration)
                     @Html.GrandLabelFor(model => model.UseSandbox, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.UseSandbox)
+                    @Html.GrandEditorFor(model => model.UseSandbox)
                     @Html.ValidationMessageFor(model => model.UseSandbox)
                 </div>
             </div>
@@ -105,7 +102,7 @@
                     @Html.GrandLabelFor(model => model.BusinessEmail, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.BusinessEmail)
+                    @Html.GrandEditorFor(model => model.BusinessEmail)
                     @Html.ValidationMessageFor(model => model.BusinessEmail)
                 </div>
             </div>
@@ -115,7 +112,7 @@
                     @Html.GrandLabelFor(model => model.PdtToken, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.PdtToken)
+                    @Html.GrandEditorFor(model => model.PdtToken)
                     @Html.ValidationMessageFor(model => model.PdtToken)
                 </div>
             </div>
@@ -125,7 +122,7 @@
                     @Html.GrandLabelFor(model => model.PdtValidateOrderTotal, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.PdtValidateOrderTotal)
+                    @Html.GrandEditorFor(model => model.PdtValidateOrderTotal)
                     @Html.ValidationMessageFor(model => model.PdtValidateOrderTotal)
                 </div>
             </div>
@@ -135,7 +132,7 @@
                     @Html.GrandLabelFor(model => model.AdditionalFee, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.AdditionalFee)
+                    @Html.GrandEditorFor(model => model.AdditionalFee)
                     @Html.ValidationMessageFor(model => model.AdditionalFee)
                 </div>
             </div>
@@ -145,7 +142,7 @@
                     @Html.GrandLabelFor(model => model.AdditionalFeePercentage, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.AdditionalFeePercentage)
+                    @Html.GrandEditorFor(model => model.AdditionalFeePercentage)
                     @Html.ValidationMessageFor(model => model.AdditionalFeePercentage)
                 </div>
             </div>
@@ -155,7 +152,7 @@
                     @Html.GrandLabelFor(model => model.PassProductNamesAndTotals, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.PassProductNamesAndTotals)
+                    @Html.GrandEditorFor(model => model.PassProductNamesAndTotals)
                     @Html.ValidationMessageFor(model => model.PassProductNamesAndTotals)
                 </div>
             </div>
@@ -165,7 +162,7 @@
                     @Html.GrandLabelFor(model => model.EnableIpn, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.EnableIpn)
+                    @Html.GrandEditorFor(model => model.EnableIpn)
                     @Html.ValidationMessageFor(model => model.EnableIpn)
                 </div>
             </div>
@@ -177,7 +174,7 @@
                     <em>@T("Plugins.Payments.PayPalStandard.Fields.EnableIpn.Hint2")</em>
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.IpnUrl)
+                    @Html.GrandEditorFor(model => model.IpnUrl)
                     @Html.ValidationMessageFor(model => model.IpnUrl)
                 </div>
             </div>
@@ -187,7 +184,7 @@
                     @Html.GrandLabelFor(model => model.AddressOverride, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.AddressOverride)
+                    @Html.GrandEditorFor(model => model.AddressOverride)
                     @Html.ValidationMessageFor(model => model.AddressOverride)
                 </div>
             </div>
@@ -197,7 +194,7 @@
                     @Html.GrandLabelFor(model => model.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage, new Dictionary<string, object> { { "class", "control-label" } }, false)
                 </div>
                 <div class="col-md-9 col-sm-9">
-                    @Html.EditorFor(model => model.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage)
+                    @Html.GrandEditorFor(model => model.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage)
                     @Html.ValidationMessageFor(model => model.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage)
                 </div>
             </div>

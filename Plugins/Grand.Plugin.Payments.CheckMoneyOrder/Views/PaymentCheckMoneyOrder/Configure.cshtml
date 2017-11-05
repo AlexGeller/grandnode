@@ -1,10 +1,10 @@
 ﻿@{
-    Layout = "";
+    Layout = "_ConfigurePlugin";
 }
 @model ConfigurationModel
 @using Grand.Plugin.Payments.CheckMoneyOrder.Models
-@using Grand.Web.Framework;
-@Html.Action("StoreScopeConfiguration", "Setting", new { area = "Admin" })
+@using Grand.Framework;
+@await Component.InvokeAsync("StoreScopeConfiguration")
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()

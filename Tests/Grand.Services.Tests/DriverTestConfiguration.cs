@@ -1,23 +1,27 @@
-﻿using System;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
+using System;
 
-namespace Grand.Services.Tests {
+namespace Grand.Services.Tests
+{
     /// <summary>
     /// A static class to handle online test configuration.
     /// </summary>
-    public static class DriverTestConfiguration {
+    public static class DriverTestConfiguration
+    {
         // private static fields
         private static Lazy<MongoClient> __client;
         private static CollectionNamespace __collectionNamespace;
         private static DatabaseNamespace __databaseNamespace;
 
         // static constructor
-        static DriverTestConfiguration() {
+        static DriverTestConfiguration()
+        {
             var connectionString = CoreTestConfiguration.ConnectionString.ToString();
             var clientSettings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
 
             var serverSelectionTimeoutString = Environment.GetEnvironmentVariable("MONGO_SERVER_SELECTION_TIMEOUT_MS");
-            if (serverSelectionTimeoutString == null) {
+            if (serverSelectionTimeoutString == null)
+            {
                 serverSelectionTimeoutString = "30000";
             }
             clientSettings.ServerSelectionTimeout = TimeSpan.FromMilliseconds(int.Parse(serverSelectionTimeoutString));
@@ -32,7 +36,8 @@ namespace Grand.Services.Tests {
         /// <summary>
         /// Gets the test client.
         /// </summary>
-        public static MongoClient Client {
+        public static MongoClient Client
+        {
             get { return __client.Value; }
         }
 
@@ -42,7 +47,8 @@ namespace Grand.Services.Tests {
         /// <value>
         /// The collection namespace.
         /// </value>
-        public static CollectionNamespace CollectionNamespace {
+        public static CollectionNamespace CollectionNamespace
+        {
             get { return __collectionNamespace; }
         }
 
@@ -52,7 +58,8 @@ namespace Grand.Services.Tests {
         /// <value>
         /// The database namespace.
         /// </value>
-        public static DatabaseNamespace DatabaseNamespace {
+        public static DatabaseNamespace DatabaseNamespace
+        {
             get { return __databaseNamespace; }
         }
     }

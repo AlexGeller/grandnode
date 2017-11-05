@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Web.Mvc;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Payments;
+using Grand.Framework.Controllers;
+using Grand.Framework.Mvc.Filters;
 using Grand.Plugin.Payments.PayPalStandard.Models;
 using Grand.Services.Configuration;
 using Grand.Services.Localization;
@@ -14,10 +10,18 @@ using Grand.Services.Logging;
 using Grand.Services.Orders;
 using Grand.Services.Payments;
 using Grand.Services.Stores;
-using Grand.Web.Framework.Controllers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace Grand.Plugin.Payments.PayPalStandard.Controllers
 {
+    [Area("Admin")]
     public class PaymentPayPalStandardController : BasePaymentController
     {
         private readonly IWorkContext _workContext;
@@ -34,14 +38,14 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
         private readonly PayPalStandardPaymentSettings _payPalStandardPaymentSettings;
 
         public PaymentPayPalStandardController(IWorkContext workContext,
-            IStoreService storeService, 
-            ISettingService settingService, 
-            IPaymentService paymentService, 
-            IOrderService orderService, 
+            IStoreService storeService,
+            ISettingService settingService,
+            IPaymentService paymentService,
+            IOrderService orderService,
             IOrderProcessingService orderProcessingService,
             ILocalizationService localizationService,
             IStoreContext storeContext,
-            ILogger logger, 
+            ILogger logger,
             IWebHelper webHelper,
             PaymentSettings paymentSettings,
             PayPalStandardPaymentSettings payPalStandardPaymentSettings)
@@ -59,10 +63,9 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
             this._paymentSettings = paymentSettings;
             this._payPalStandardPaymentSettings = payPalStandardPaymentSettings;
         }
-        
-        [AdminAuthorize]
-        [ChildActionOnly]
-        public ActionResult Configure()
+
+        [AuthorizeAdmin]
+        public IActionResult Configure()
         {
             //load settings for a chosen store scope
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
@@ -97,13 +100,12 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
                 model.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage_OverrideForStore = _settingService.SettingExists(payPalStandardPaymentSettings, x => x.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage, storeScope);
             }
 
-            return View("~/Plugins/Payments.PayPalStandard/Views/PaymentPayPalStandard/Configure.cshtml", model);
+            return View("~/Plugins/Payments.PayPalStandard/netcoreapp2.0/Views/PaymentPayPalStandard/Configure.cshtml", model);
         }
 
         [HttpPost]
-        [AdminAuthorize]
-        [ChildActionOnly]
-        public ActionResult Configure(ConfigurationModel model)
+        [AuthorizeAdmin]
+        public IActionResult Configure(ConfigurationModel model)
         {
             if (!ModelState.IsValid)
                 return Configure();
@@ -191,28 +193,7 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
             return Configure();
         }
 
-        [ChildActionOnly]
-        public ActionResult PaymentInfo()
-        {
-            return View("~/Plugins/Payments.PayPalStandard/Views/PaymentPayPalStandard/PaymentInfo.cshtml");
-        }
-
-        [NonAction]
-        public override IList<string> ValidatePaymentForm(FormCollection form)
-        {
-            var warnings = new List<string>();
-            return warnings;
-        }
-
-        [NonAction]
-        public override ProcessPaymentRequest GetPaymentInfo(FormCollection form)
-        {
-            var paymentInfo = new ProcessPaymentRequest();
-            return paymentInfo;
-        }
-
-        [ValidateInput(false)]
-        public ActionResult PDTHandler(FormCollection form)
+        public IActionResult PDTHandler(IFormCollection form)
         {
             var tx = _webHelper.QueryString<string>("tx");
             Dictionary<string, string> values;
@@ -328,7 +309,7 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
                     }
                 }
 
-                return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id});
+                return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
             }
             else
             {
@@ -356,10 +337,15 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
             }
         }
 
-        [ValidateInput(false)]
-        public ActionResult IPNHandler()
+        public IActionResult IPNHandler()
         {
-            byte[] param = Request.BinaryRead(Request.ContentLength);
+            byte[] param = default(byte[]);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Request.Body.CopyTo(ms);
+                param = ms.ToArray();
+            }
+
             string strRequest = Encoding.ASCII.GetString(param);
             Dictionary<string, string> values;
 
@@ -469,7 +455,7 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
                                 //this.OrderService.InsertOrderNote(newOrder.OrderId, sb.ToString(), DateTime.UtcNow);
                                 _logger.Information("PayPal IPN. Recurring info", new GrandException(sb.ToString()));
                             }
-                            else
+                            else 
                             {
                                 _logger.Error("PayPal IPN. Order is not found", new GrandException(sb.ToString()));
                             }
@@ -619,7 +605,7 @@ namespace Grand.Plugin.Payments.PayPalStandard.Controllers
             return Content("");
         }
 
-        public ActionResult CancelOrder(FormCollection form)
+        public IActionResult CancelOrder(IFormCollection form)
         {
             if (_payPalStandardPaymentSettings.ReturnFromPayPalWithoutPaymentRedirectsToOrderDetailsPage)
             {

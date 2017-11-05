@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.Web.Mvc;
 using Grand.Core;
 using Grand.Plugin.Tax.FixedRate.Models;
 using Grand.Services.Configuration;
 using Grand.Services.Security;
 using Grand.Services.Tax;
-using Grand.Web.Framework.Controllers;
-using Grand.Web.Framework.Kendoui;
-using Grand.Web.Framework.Mvc;
+using Grand.Framework.Controllers;
+using Grand.Framework.Kendoui;
+using Grand.Framework.Mvc;
+using Grand.Framework.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Grand.Plugin.Tax.FixedRate.Controllers
 {
-    [AdminAuthorize]
+    [AuthorizeAdmin]
+    [Area("Admin")]
     public class TaxFixedRateController : BasePluginController
     {
         private readonly ITaxCategoryService _taxCategoryService;
@@ -27,23 +29,14 @@ namespace Grand.Plugin.Tax.FixedRate.Controllers
             this._permissionService = permissionService;
         }
 
-        protected override void Initialize(System.Web.Routing.RequestContext requestContext)
-        {
-            //little hack here
-            //always set culture to 'en-US' (Telerik has a bug related to editing decimal values in other cultures). Like currently it's done for admin area in Global.asax.cs
-            CommonHelper.SetTelerikCulture();
 
-            base.Initialize(requestContext);
-        }
-
-        [ChildActionOnly]
-        public ActionResult Configure()
+        public IActionResult Configure()
         {
-            return View("~/Plugins/Tax.FixedRate/Views/TaxFixedRate/Configure.cshtml");
+            return View("~/Plugins/Tax.FixedRate/netcoreapp2.0/Views/Configure.cshtml");
         }
 
         [HttpPost]
-        public ActionResult Configure(DataSourceRequest command)
+        public IActionResult Configure(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return Content("Access denied");
@@ -66,7 +59,7 @@ namespace Grand.Plugin.Tax.FixedRate.Controllers
         }
 
         [HttpPost]
-        public ActionResult TaxRateUpdate(FixedTaxRateModel model)
+        public IActionResult TaxRateUpdate(FixedTaxRateModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return Content("Access denied");

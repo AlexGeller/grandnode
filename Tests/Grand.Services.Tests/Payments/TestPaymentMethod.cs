@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using Grand.Core.Domain.Orders;
+﻿using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Payments;
 using Grand.Core.Plugins;
 using Grand.Services.Payments;
-using System.Web.Routing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using System;
+using System.Collections.Generic;
 
-namespace Grand.Services.Tests.Payments {
-    public class TestPaymentMethod : BasePlugin, IPaymentMethod {
+namespace Grand.Services.Tests.Payments
+{
+    public class TestPaymentMethod : BasePlugin, IPaymentMethod
+    {
         #region Methods
 
         /// <summary>
@@ -15,7 +18,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="processPaymentRequest">Payment info required for an order processing</param>
         /// <returns>Process payment result</returns>
-        public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest) {
+        public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest)
+        {
             var result = new ProcessPaymentResult();
             result.NewPaymentStatus = PaymentStatus.Paid;
             return result;
@@ -25,7 +29,8 @@ namespace Grand.Services.Tests.Payments {
         /// Post process payment (used by payment gateways that require redirecting to a third-party URL)
         /// </summary>
         /// <param name="postProcessPaymentRequest">Payment info required for an order processing</param>
-        public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest) {
+        public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest)
+        {
             //nothing
         }
 
@@ -34,7 +39,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="cart">Shoping cart</param>
         /// <returns>true - hide; false - display.</returns>
-        public bool HidePaymentMethod(IList<ShoppingCartItem> cart) {
+        public bool HidePaymentMethod(IList<ShoppingCartItem> cart)
+        {
             //you can put any logic here
             //for example, hide this payment method if all products in the cart are downloadable
             //or hide this payment method if current customer is from certain country
@@ -46,7 +52,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="cart">Shoping cart</param>
         /// <returns>Additional handling fee</returns>
-        public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart) {
+        public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart)
+        {
             return decimal.Zero;
         }
 
@@ -55,7 +62,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="capturePaymentRequest">Capture payment request</param>
         /// <returns>Capture payment result</returns>
-        public CapturePaymentResult Capture(CapturePaymentRequest capturePaymentRequest) {
+        public CapturePaymentResult Capture(CapturePaymentRequest capturePaymentRequest)
+        {
             var result = new CapturePaymentResult();
             result.AddError("Capture method not supported");
             return result;
@@ -66,7 +74,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="refundPaymentRequest">Request</param>
         /// <returns>Result</returns>
-        public RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest) {
+        public RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest)
+        {
             var result = new RefundPaymentResult();
             result.AddError("Refund method not supported");
             return result;
@@ -77,7 +86,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="voidPaymentRequest">Request</param>
         /// <returns>Result</returns>
-        public VoidPaymentResult Void(VoidPaymentRequest voidPaymentRequest) {
+        public VoidPaymentResult Void(VoidPaymentRequest voidPaymentRequest)
+        {
             var result = new VoidPaymentResult();
             result.AddError("Void method not supported");
             return result;
@@ -88,7 +98,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="processPaymentRequest">Payment info required for an order processing</param>
         /// <returns>Process payment result</returns>
-        public ProcessPaymentResult ProcessRecurringPayment(ProcessPaymentRequest processPaymentRequest) {
+        public ProcessPaymentResult ProcessRecurringPayment(ProcessPaymentRequest processPaymentRequest)
+        {
             var result = new ProcessPaymentResult();
             result.AddError("Recurring method not supported");
             return result;
@@ -99,7 +110,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="cancelPaymentRequest">Request</param>
         /// <returns>Result</returns>
-        public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest) {
+        public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
+        {
             var result = new CancelRecurringPaymentResult();
             result.AddError("Cancelling recurring orders not supported");
             return result;
@@ -110,7 +122,8 @@ namespace Grand.Services.Tests.Payments {
         /// </summary>
         /// <param name="order">Order</param>
         /// <returns>Result</returns>
-        public bool CanRePostProcessPayment(Order order) {
+        public bool CanRePostProcessPayment(Order order)
+        {
             if (order == null)
                 throw new ArgumentNullException("order");
 
@@ -124,7 +137,8 @@ namespace Grand.Services.Tests.Payments {
         /// <param name="actionName">Action name</param>
         /// <param name="controllerName">Controller name</param>
         /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues) {
+        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
+        {
             actionName = null;
             controllerName = null;
             routeValues = null;
@@ -136,14 +150,31 @@ namespace Grand.Services.Tests.Payments {
         /// <param name="actionName">Action name</param>
         /// <param name="controllerName">Controller name</param>
         /// <param name="routeValues">Route values</param>
-        public void GetPaymentInfoRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues) {
+        public void GetPaymentInfoRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
+        {
             actionName = null;
             controllerName = null;
             routeValues = null;
         }
 
-        public Type GetControllerType() {
+        public Type GetControllerType()
+        {
             return typeof(TestPaymentMethod);
+        }
+
+        public IList<string> ValidatePaymentForm(IFormCollection form)
+        {
+            return new List<string>();
+        }
+
+        public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
+        {
+            return new ProcessPaymentRequest();
+        }
+
+        public void GetPublicViewComponent(out string viewComponentName)
+        {
+            viewComponentName = "";
         }
 
         #endregion
@@ -153,8 +184,10 @@ namespace Grand.Services.Tests.Payments {
         /// <summary>
         /// Gets a value indicating whether capture is supported
         /// </summary>
-        public bool SupportCapture {
-            get {
+        public bool SupportCapture
+        {
+            get
+            {
                 return false;
             }
         }
@@ -162,8 +195,10 @@ namespace Grand.Services.Tests.Payments {
         /// <summary>
         /// Gets a value indicating whether partial refund is supported
         /// </summary>
-        public bool SupportPartiallyRefund {
-            get {
+        public bool SupportPartiallyRefund
+        {
+            get
+            {
                 return false;
             }
         }
@@ -171,8 +206,10 @@ namespace Grand.Services.Tests.Payments {
         /// <summary>
         /// Gets a value indicating whether refund is supported
         /// </summary>
-        public bool SupportRefund {
-            get {
+        public bool SupportRefund
+        {
+            get
+            {
                 return false;
             }
         }
@@ -180,8 +217,10 @@ namespace Grand.Services.Tests.Payments {
         /// <summary>
         /// Gets a value indicating whether void is supported
         /// </summary>
-        public bool SupportVoid {
-            get {
+        public bool SupportVoid
+        {
+            get
+            {
                 return false;
             }
         }
@@ -190,8 +229,10 @@ namespace Grand.Services.Tests.Payments {
         /// Gets a recurring payment type of payment method
         /// </summary>
         /// <returns>A recurring payment type of payment method</returns>
-        public RecurringPaymentType RecurringPaymentType {
-            get {
+        public RecurringPaymentType RecurringPaymentType
+        {
+            get
+            {
                 return RecurringPaymentType.NotSupported;
             }
         }
@@ -200,8 +241,10 @@ namespace Grand.Services.Tests.Payments {
         /// Gets a payment method type
         /// </summary>
         /// <returns>A payment method type</returns>
-        public PaymentMethodType PaymentMethodType {
-            get {
+        public PaymentMethodType PaymentMethodType
+        {
+            get
+            {
                 return PaymentMethodType.Standard;
             }
         }
@@ -209,8 +252,10 @@ namespace Grand.Services.Tests.Payments {
         /// <summary>
         /// Gets a value indicating whether we should display a payment information page for this plugin
         /// </summary>
-        public bool SkipPaymentInfo {
-            get {
+        public bool SkipPaymentInfo
+        {
+            get
+            {
                 return false;
             }
         }

@@ -1,12 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Domain.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Grand.Core.Domain.Configuration.Tests {
+namespace Grand.Core.Domain.Configuration.Tests
+{
     [TestClass()]
     public class SettingTests {
         [TestMethod()]

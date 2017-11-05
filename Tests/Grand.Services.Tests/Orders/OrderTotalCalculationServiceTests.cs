@@ -1,12 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Catalog;
 using Grand.Core.Domain.Common;
 using Grand.Core.Domain.Customers;
-using Grand.Core.Domain.Discounts;
 using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Shipping;
 using Grand.Core.Domain.Stores;
@@ -14,6 +11,7 @@ using Grand.Core.Domain.Tax;
 using Grand.Core.Plugins;
 using Grand.Services.Catalog;
 using Grand.Services.Common;
+using Grand.Services.Customers;
 using Grand.Services.Directory;
 using Grand.Services.Discounts;
 using Grand.Services.Events;
@@ -21,14 +19,18 @@ using Grand.Services.Localization;
 using Grand.Services.Logging;
 using Grand.Services.Payments;
 using Grand.Services.Shipping;
-using Grand.Services.Tax;
-using Moq;
-using Grand.Services.Vendors;
 using Grand.Services.Stores;
+using Grand.Services.Tax;
+using Grand.Services.Vendors;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Collections.Generic;
 
-namespace Grand.Services.Orders.Tests {
+namespace Grand.Services.Orders.Tests
+{
     [TestClass()]
-    public class OrderTotalCalculationServiceTests {
+    public class OrderTotalCalculationServiceTests
+    {
         private IWorkContext _workContext;
         private IStoreContext _storeContext;
         private ITaxService _taxService;
@@ -64,9 +66,11 @@ namespace Grand.Services.Orders.Tests {
         private AddressSettings _addressSettings;
         private IVendorService _vendorService;
         private IStoreService _storeService;
+        private ICustomerService _customerService;
 
         [TestInitialize()]
-        public void TestInitialize() {
+        public void TestInitialize()
+        {
 
             new Grand.Services.Tests.ServiceTest().PluginInitializator();
 
@@ -93,11 +97,12 @@ namespace Grand.Services.Orders.Tests {
 
             _shoppingCartSettings = new ShoppingCartSettings();
             _catalogSettings = new CatalogSettings();
+            _customerService = new Mock<ICustomerService>().Object;
 
             _priceCalcService = new PriceCalculationService(_workContext, _storeContext,
                 _discountService, _categoryService,
-                _manufacturerService, _productAttributeParser,
-                _productService, cacheManager, _vendorService, _storeService,
+                _manufacturerService, _productAttributeParser, _productService, _customerService,
+                cacheManager, _vendorService, _storeService,
                 _shoppingCartSettings, _catalogSettings);
 
             var tempEventPublisher = new Mock<IEventPublisher>();
@@ -142,7 +147,7 @@ namespace Grand.Services.Orders.Tests {
             _checkoutAttributeParser = new Mock<ICheckoutAttributeParser>().Object;
             _giftCardService = new Mock<IGiftCardService>().Object;
             _genericAttributeService = new Mock<IGenericAttributeService>().Object;
-            
+
             _geoLookupService = new Mock<IGeoLookupService>().Object;
             _countryService = new Mock<ICountryService>().Object;
             _customerSettings = new CustomerSettings();
@@ -169,14 +174,15 @@ namespace Grand.Services.Orders.Tests {
             _orderTotalCalcService = new OrderTotalCalculationService(_workContext, _storeContext,
                 _priceCalcService, _taxService, _shippingService, _paymentService,
                 _checkoutAttributeParser, _discountService, _giftCardService, _genericAttributeService,
-                null, _taxSettings, _rewardPointsSettings,
+                null, _productService, _taxSettings, _rewardPointsSettings,
                 _shippingSettings, _shoppingCartSettings, _catalogSettings);
         }
 
-        
-        
+
+
         [TestMethod()]
-        public void Can_convert_reward_points_to_amount() {
+        public void Can_convert_reward_points_to_amount()
+        {
             //when ExchangeRate is e.g. 512, then ConvertRewardPoints(44) will return 22528 (simple multyplying)
             _rewardPointsSettings.Enabled = true;
             _rewardPointsSettings.ExchangeRate = 512M;
@@ -185,7 +191,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Can_convert_amount_to_reward_points() {
+        public void Can_convert_amount_to_reward_points()
+        {
             _rewardPointsSettings.Enabled = true;
             _rewardPointsSettings.ExchangeRate = 512M;
 
@@ -194,7 +201,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Can_check_minimum_reward_points_to_use_requirement() {
+        public void Can_check_minimum_reward_points_to_use_requirement()
+        {
             //if RewardPoints are enabled
             //MinimumRewardPointsToUse says from which quantity user can get RewardPoints
             //if 0 -> no constraints

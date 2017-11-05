@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Routing;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Plugins;
 using Grand.Plugin.Tax.CountryStateZip.Infrastructure.Cache;
 using Grand.Plugin.Tax.CountryStateZip.Services;
 using Grand.Services.Localization;
 using Grand.Services.Tax;
+using System;
+using System.Linq;
 
 namespace Grand.Plugin.Tax.CountryStateZip
 {
@@ -19,18 +17,26 @@ namespace Grand.Plugin.Tax.CountryStateZip
     {
         private readonly ITaxRateService _taxRateService;
         private readonly IStoreContext _storeContext;
-        ///private readonly TaxRateObjectContext _objectContext;
         private readonly ICacheManager _cacheManager;
+        private readonly IWebHelper _webHelper;
 
         public CountryStateZipTaxProvider(ITaxRateService taxRateService,
             IStoreContext storeContext,
-            //TaxRateObjectContext objectContext,
-            ICacheManager cacheManager)
+            ICacheManager cacheManager,
+            IWebHelper webHelper)
         {
             this._taxRateService = taxRateService;
             this._storeContext = storeContext;
-            //this._objectContext = objectContext;
             this._cacheManager = cacheManager;
+            this._webHelper = webHelper;
+        }
+
+        /// <summary>
+        /// Gets a configuration page URL
+        /// </summary>
+        public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/TaxCountryStateZip/Configure";
         }
 
         /// <summary>
@@ -47,98 +53,60 @@ namespace Grand.Plugin.Tax.CountryStateZip
                 result.Errors.Add("Address is not set");
                 return result;
             }
-            
-            //first, load all tax rate records (cached) - loaded only once
-            string cacheKey = ModelCacheEventConsumer.ALL_TAX_RATES_MODEL_KEY;
+
+            const string cacheKey = ModelCacheEventConsumer.ALL_TAX_RATES_MODEL_KEY;
             var allTaxRates = _cacheManager.Get(cacheKey, () =>
                 _taxRateService
-                .GetAllTaxRates()
-                .Select(x => new TaxRateForCaching
-                {
-                    Id = x.Id,
-                    StoreId = x.StoreId,
-                    TaxCategoryId = x.TaxCategoryId,
-                    CountryId = x.CountryId,
-                    StateProvinceId = x.StateProvinceId,
-                    Zip = x.Zip,
-                    Percentage = x.Percentage,
-                }
-                )
-                .ToList()
+                    .GetAllTaxRates()
+                    .Select(x => new TaxRateForCaching
+                    {
+                        Id = x.Id,
+                        StoreId = x.StoreId,
+                        TaxCategoryId = x.TaxCategoryId,
+                        CountryId = x.CountryId,
+                        StateProvinceId = x.StateProvinceId,
+                        Zip = x.Zip,
+                        Percentage = x.Percentage
+                    }
+                    )
+                    .ToList()
                 );
 
-            string storeId = _storeContext.CurrentStore.Id;
-            string taxCategoryId = calculateTaxRequest.TaxCategoryId;
-            string countryId = calculateTaxRequest.Address.CountryId;
-            string stateProvinceId = calculateTaxRequest.Address.StateProvinceId;
-            string zip = calculateTaxRequest.Address.ZipPostalCode;
-
+            var storeId = _storeContext.CurrentStore.Id;
+            var taxCategoryId = calculateTaxRequest.TaxCategoryId;
+            var countryId = calculateTaxRequest.Address.CountryId;
+            var stateProvinceId = calculateTaxRequest.Address.StateProvinceId;
+            var zip = calculateTaxRequest.Address.ZipPostalCode;
 
             if (zip == null)
                 zip = string.Empty;
             zip = zip.Trim();
 
-            var existingRates = new List<TaxRateForCaching>();
-            foreach (var taxRate in allTaxRates)
-            {
-                if (taxRate.CountryId == countryId && taxRate.TaxCategoryId == taxCategoryId)
-                    existingRates.Add(taxRate);
-            }
+            var existingRates = allTaxRates.Where(taxRate => taxRate.CountryId == countryId && taxRate.TaxCategoryId == taxCategoryId).ToList();
 
             //filter by store
-            var matchedByStore = new List<TaxRateForCaching>();
-            //first, find by a store ID
-            foreach (var taxRate in existingRates)
-                if (storeId == taxRate.StoreId)
-                    matchedByStore.Add(taxRate);
-            //not found? use the default ones (ID == 0)
-            if (matchedByStore.Count == 0)
-                foreach (var taxRate in existingRates)
-                    if (!String.IsNullOrEmpty(taxRate.StoreId))
-                        matchedByStore.Add(taxRate);
+            var matchedByStore = existingRates.Where(taxRate => storeId == taxRate.StoreId).ToList();
 
+            //not found? use the default ones (ID == 0)
+            if (!matchedByStore.Any())
+                matchedByStore.AddRange(existingRates.Where(taxRate => string.IsNullOrEmpty(taxRate.StoreId)));
 
             //filter by state/province
-            var matchedByStateProvince = new List<TaxRateForCaching>();
-            //first, find by a state ID
-            foreach (var taxRate in matchedByStore)
-                if (stateProvinceId == taxRate.StateProvinceId)
-                    matchedByStateProvince.Add(taxRate);
-            //not found? use the default ones (ID == 0)
-            if (matchedByStateProvince.Count == 0)
-                foreach (var taxRate in matchedByStore)
-                    if (String.IsNullOrEmpty(taxRate.StateProvinceId))
-                        matchedByStateProvince.Add(taxRate);
+            var matchedByStateProvince = matchedByStore.Where(taxRate => stateProvinceId == taxRate.StateProvinceId).ToList();
 
+            //not found? use the default ones (ID == 0)
+            if (!matchedByStateProvince.Any())
+                matchedByStateProvince.AddRange(matchedByStore.Where(taxRate => string.IsNullOrEmpty(taxRate.StateProvinceId)));
 
             //filter by zip
-            var matchedByZip = new List<TaxRateForCaching>();
-            foreach (var taxRate in matchedByStateProvince)
-                if ((String.IsNullOrEmpty(zip) && String.IsNullOrEmpty(taxRate.Zip)) ||
-                    (zip.Equals(taxRate.Zip, StringComparison.InvariantCultureIgnoreCase)))
-                    matchedByZip.Add(taxRate);
-            if (matchedByZip.Count == 0)
-                foreach (var taxRate in matchedByStateProvince)
-                    if (String.IsNullOrWhiteSpace(taxRate.Zip))
-                        matchedByZip.Add(taxRate);
+            var matchedByZip = matchedByStateProvince.Where(taxRate => (string.IsNullOrEmpty(zip) && string.IsNullOrEmpty(taxRate.Zip)) || zip.Equals(taxRate.Zip, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (!matchedByZip.Any())
+                matchedByZip.AddRange(matchedByStateProvince.Where(taxRate => string.IsNullOrWhiteSpace(taxRate.Zip)));
 
-            if (matchedByZip.Count > 0)
+            if (matchedByZip.Any())
                 result.TaxRate = matchedByZip[0].Percentage;
 
             return result;
-        }
-
-        /// <summary>
-        /// Gets a route for provider configuration
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
-        {
-            actionName = "Configure";
-            controllerName = "TaxCountryStateZip";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Tax.CountryStateZip.Controllers" }, { "area", null } };
         }
 
         /// <summary>
@@ -146,9 +114,6 @@ namespace Grand.Plugin.Tax.CountryStateZip
         /// </summary>
         public override void Install()
         {
-            //database objects
-            //_objectContext.Install();
-
             //locales
             this.AddOrUpdatePluginLocaleResource("Plugins.Tax.CountryStateZip.Fields.Store", "Store");
             this.AddOrUpdatePluginLocaleResource("Plugins.Tax.CountryStateZip.Fields.Store.Hint", "If an asterisk is selected, then this shipping rate will apply to all stores.");
@@ -164,7 +129,7 @@ namespace Grand.Plugin.Tax.CountryStateZip
             this.AddOrUpdatePluginLocaleResource("Plugins.Tax.CountryStateZip.Fields.Percentage.Hint", "The tax rate.");
             this.AddOrUpdatePluginLocaleResource("Plugins.Tax.CountryStateZip.AddRecord", "Add tax rate");
             this.AddOrUpdatePluginLocaleResource("Plugins.Tax.CountryStateZip.AddRecord.Hint", "Adding a new tax rate");
-            
+
             base.Install();
         }
 
@@ -173,9 +138,6 @@ namespace Grand.Plugin.Tax.CountryStateZip
         /// </summary>
         public override void Uninstall()
         {
-            //database objects
-            //_objectContext.Uninstall();
-
             //locales
             this.DeletePluginLocaleResource("Plugins.Tax.CountryStateZip.Fields.Store");
             this.DeletePluginLocaleResource("Plugins.Tax.CountryStateZip.Fields.Store.Hint");
@@ -191,7 +153,7 @@ namespace Grand.Plugin.Tax.CountryStateZip
             this.DeletePluginLocaleResource("Plugins.Tax.CountryStateZip.Fields.Percentage.Hint");
             this.DeletePluginLocaleResource("Plugins.Tax.CountryStateZip.AddRecord");
             this.DeletePluginLocaleResource("Plugins.Tax.CountryStateZip.AddRecord.Hint");
-            
+
             base.Uninstall();
         }
     }

@@ -1,18 +1,17 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
-using Grand.Core.Caching;
+﻿using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Directory;
 using Grand.Core.Plugins;
 using Grand.Services.Events;
 using Grand.Services.Stores;
-using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using Grand.Services.Tests.Directory;
+using Moq;
+using System;
+using System.Linq;
 
-namespace Grand.Services.Directory.Tests {
+namespace Grand.Services.Directory.Tests
+{
     [TestClass()]
     public class CurrencyServiceTests {
         private IRepository<Currency> _currencyRepository;

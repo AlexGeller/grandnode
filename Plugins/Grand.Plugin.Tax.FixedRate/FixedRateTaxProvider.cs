@@ -1,8 +1,8 @@
-﻿using System.Web.Routing;
-using Grand.Core.Plugins;
-using Grand.Services.Configuration;
+﻿using Grand.Services.Configuration;
 using Grand.Services.Localization;
 using Grand.Services.Tax;
+using Grand.Core.Plugins;
+using Grand.Core;
 
 namespace Grand.Plugin.Tax.FixedRate
 {
@@ -12,10 +12,12 @@ namespace Grand.Plugin.Tax.FixedRate
     public class FixedRateTaxProvider : BasePlugin, ITaxProvider
     {
         private readonly ISettingService _settingService;
+        private readonly IWebHelper _webHelper;
 
-        public FixedRateTaxProvider(ISettingService settingService)
+        public FixedRateTaxProvider(ISettingService settingService, IWebHelper webHelper)
         {
             this._settingService = settingService;
+            this._webHelper = webHelper;
         }
         
         /// <summary>
@@ -42,18 +44,13 @@ namespace Grand.Plugin.Tax.FixedRate
             var rate = this._settingService.GetSettingByKey<decimal>(string.Format("Tax.TaxProvider.FixedRate.TaxCategoryId{0}", taxCategoryId));
             return rate;
         }
-        
+
         /// <summary>
-        /// Gets a route for provider configuration
+        /// Gets a configuration page URL
         /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <param name="controllerName">Controller name</param>
-        /// <param name="routeValues">Route values</param>
-        public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
+        public override string GetConfigurationPageUrl()
         {
-            actionName = "Configure";
-            controllerName = "TaxFixedRate";
-            routeValues = new RouteValueDictionary { { "Namespaces", "Grand.Plugin.Tax.FixedRate.Controllers" }, { "area", null } };
+            return $"{_webHelper.GetStoreLocation()}Admin/TaxFixedRate/Configure";
         }
 
         public override void Install()

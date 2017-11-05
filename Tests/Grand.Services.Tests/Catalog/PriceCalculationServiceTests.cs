@@ -1,28 +1,29 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Domain.Catalog;
 using Grand.Core.Domain.Customers;
 using Grand.Core.Domain.Discounts;
 using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Stores;
-using Grand.Services.Tests;
+using Grand.Services.Customers;
 using Grand.Services.Discounts;
-using Moq;
-using Grand.Services.Vendors;
 using Grand.Services.Stores;
+using Grand.Services.Vendors;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Collections.Generic;
 
-namespace Grand.Services.Catalog.Tests {
+namespace Grand.Services.Catalog.Tests
+{
     [TestClass()]
-    public class PriceCalculationServiceTests {
+    public class PriceCalculationServiceTests
+    {
         private Store _store;
         private Mock<IWorkContext> tempWorkContext;
         private IWorkContext _workContext;
         private IStoreContext _storeContext;
-        private Mock<IDiscountService> tempDiscountServiceMock;     //Mock<> IDiscountService for UnitTest method
-        private IDiscountService _discountService;                  //object IDiscountService for PriceCalculationService() constructor
+        private Mock<IDiscountService> tempDiscountServiceMock;
+        private IDiscountService _discountService;
         private ICategoryService _categoryService;
         private IManufacturerService _manufacturerService;
         private IProductAttributeParser _productAttributeParser;
@@ -34,9 +35,10 @@ namespace Grand.Services.Catalog.Tests {
         private IPriceCalculationService _priceCalcService;
         private IVendorService _vendorService;
         private IStoreService _storeService;
-
+        private ICustomerService _customerService;
         [TestInitialize()]
-        public void TestInitialize() {
+        public void TestInitialize()
+        {
             tempWorkContext = new Mock<IWorkContext>();
             {
                 _workContext = tempWorkContext.Object;
@@ -47,15 +49,16 @@ namespace Grand.Services.Catalog.Tests {
                 tempStoreContext.Setup(instance => instance.CurrentStore).Returns(_store);
                 _storeContext = tempStoreContext.Object;
             }
-            tempDiscountServiceMock = new Mock<IDiscountService>();     //Mock<> IDiscountService
+            tempDiscountServiceMock = new Mock<IDiscountService>();
             {
-                _discountService = tempDiscountServiceMock.Object;      //object IDiscountService
+                _discountService = tempDiscountServiceMock.Object;
             }
 
             _categoryService = new Mock<ICategoryService>().Object;
             _manufacturerService = new Mock<IManufacturerService>().Object;
             _vendorService = new Mock<IVendorService>().Object;
             _storeService = new Mock<IStoreService>().Object;
+            _customerService = new Mock<ICustomerService>().Object;
             tempProductService = new Mock<IProductService>();
             {
                 _productService = tempProductService.Object;
@@ -72,6 +75,7 @@ namespace Grand.Services.Catalog.Tests {
                 _manufacturerService,
                 _productAttributeParser,
                 _productService,
+                _customerService,
                 _cacheManager,
                 _vendorService,
                 _storeService,
@@ -80,8 +84,10 @@ namespace Grand.Services.Catalog.Tests {
         }
 
         [TestMethod()]
-        public void Can_get_final_product_price() {
-            var product = new Product {
+        public void Can_get_final_product_price()
+        {
+            var product = new Product
+            {
                 Id = "1",
                 Name = "product name 01",
                 Price = 49.99M,
@@ -97,8 +103,10 @@ namespace Grand.Services.Catalog.Tests {
         }
 
         [TestMethod()]
-        public void Can_get_final_product_price_with_tier_prices() {
-            var product = new Product {
+        public void Can_get_final_product_price_with_tier_prices()
+        {
+            var product = new Product
+            {
                 Id = "1",
                 Name = "product name 01",
                 Price = 49.99M,
@@ -134,14 +142,16 @@ namespace Grand.Services.Catalog.Tests {
         }
 
         [TestMethod()]
-        public void Can_get_final_product_price_with_tier_prices_by_customerRole() {
+        public void Can_get_final_product_price_with_tier_prices_by_customerRole()
+        {
             /*
             this test shows how property "Price" of class "Product" can change in relation to:
                 > TierPrice (the more you buy, the less you pay)
                 > CustomerRole (some of our customers are more "valuable" than others e.g. wholesale customer
             */
 
-            var product = new Product {
+            var product = new Product
+            {
                 Id = "1",
                 Name = "product name 01",
                 Price = 49.99M,
@@ -205,9 +215,11 @@ namespace Grand.Services.Catalog.Tests {
         }
 
         [TestMethod()]
-        public void Can_get_final_product_price_with_additionalFee() {
+        public void Can_get_final_product_price_with_additionalFee()
+        {
             //tests if price is valid for additional charge (additional fee) 
-            var product = new Product {
+            var product = new Product
+            {
                 Id = "1",
                 Name = "product name 01",
                 Price = 49.99M,
@@ -223,14 +235,10 @@ namespace Grand.Services.Catalog.Tests {
         }
 
         [TestMethod()]
-        public void Can_get_final_product_price_with_discount() {
-            /*
-            make Discount object, assign it to product's collection AppliedDiscounts
-            customize ValidateDiscount() and GetAllDiscounts() methods via Moq
-            act and assert
-            */
-
-            var product = new Product {
+        public void Can_get_final_product_price_with_discount()
+        {
+            var product = new Product
+            {
                 Id = "1",
                 Name = "product name 01",
                 Price = 49.99M,
@@ -240,7 +248,8 @@ namespace Grand.Services.Catalog.Tests {
 
             var customer = new Customer();
 
-            var discount001 = new Discount {
+            var discount001 = new Discount
+            {
                 Id = "1",
                 Name = "Discount 001",
                 DiscountType = DiscountType.AssignedToSkus,
@@ -248,7 +257,6 @@ namespace Grand.Services.Catalog.Tests {
                 DiscountLimitation = DiscountLimitationType.Unlimited
             };
 
-            product.AppliedDiscounts.Add(discount001.Id);
             tempDiscountServiceMock.Setup(x => x.GetDiscountById(discount001.Id)).Returns(discount001);
 
             product.AppliedDiscounts.Add(discount001.Id);
@@ -256,17 +264,23 @@ namespace Grand.Services.Catalog.Tests {
             tempDiscountServiceMock.Setup(x => x.ValidateDiscount(discount001, customer)).Returns(new DiscountValidationResult() { IsValid = true });
             tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToCategories, "", "", false)).Returns(new List<Discount>());
             tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToManufacturers, "", "", false)).Returns(new List<Discount>());
+            tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToAllProducts, "", "", false)).Returns(new List<Discount>());
+
+            var discountAmount = discount001.DiscountAmount;
+            tempDiscountServiceMock.Setup(x => x.GetPreferredDiscount(It.IsAny<List<AppliedDiscount>>(), 49.99M, out discountAmount)).Returns(new List<AppliedDiscount>());
 
             //it should return 39.99 - price cheaper about 10 
             Assert.AreEqual(39.99M, _priceCalcService.GetFinalPrice(product, customer, 0, true, 1));
         }
 
         [TestMethod()]
-        public void Can_get_shopping_cart_item_unitPrice() {
+        public void Can_get_shopping_cart_item_unitPrice()
+        {
             var customer001 = new Customer { Id = "98767" };
             tempWorkContext.Setup(x => x.CurrentCustomer).Returns(customer001);
 
-            var product001 = new Product {
+            var product001 = new Product
+            {
                 Id = "242422",
                 Name = "product name 01",
                 Price = 49.99M,
@@ -275,7 +289,8 @@ namespace Grand.Services.Catalog.Tests {
             };
             tempProductService.Setup(x => x.GetProductById("242422")).Returns(product001);
 
-            var shoppingCartItem = new ShoppingCartItem {
+            var shoppingCartItem = new ShoppingCartItem
+            {
                 CustomerId = "98767",//customer001.Id, //98767
                 ProductId = "242422",// product001.Id, //222
                 Quantity = 2
@@ -286,13 +301,16 @@ namespace Grand.Services.Catalog.Tests {
 
             tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToCategories, "", "", false)).Returns(new List<Discount>());
             tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToManufacturers, "", "", false)).Returns(new List<Discount>());
+            tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToAllProducts, "", "", false)).Returns(new List<Discount>());
 
             Assert.AreEqual(49.99M, _priceCalcService.GetUnitPrice(shoppingCartItem));
         }
 
         [TestMethod()]
-        public void Can_get_shopping_cart_item_subTotal() {
-            var product001 = new Product {
+        public void Can_get_shopping_cart_item_subTotal()
+        {
+            var product001 = new Product
+            {
                 Id = "242422",
                 Name = "product name 01",
                 Price = 55.11M,
@@ -304,7 +322,8 @@ namespace Grand.Services.Catalog.Tests {
             var customer001 = new Customer { Id = "98767", HasShoppingCartItems = true };
             tempWorkContext.Setup(x => x.CurrentCustomer).Returns(customer001);
 
-            var shoppingCartItem = new ShoppingCartItem {
+            var shoppingCartItem = new ShoppingCartItem
+            {
                 CustomerId = customer001.Id, //98767
                 ProductId = product001.Id, //222
                 Quantity = 2
@@ -314,6 +333,7 @@ namespace Grand.Services.Catalog.Tests {
 
             tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToCategories, "", "", false)).Returns(new List<Discount>());
             tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToManufacturers, "", "", false)).Returns(new List<Discount>());
+            tempDiscountServiceMock.Setup(x => x.GetAllDiscounts(DiscountType.AssignedToAllProducts, "", "", false)).Returns(new List<Discount>());
 
             Assert.AreEqual(110.22M, _priceCalcService.GetSubTotal(shoppingCartItem));
         }

@@ -1,13 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Customers;
 using Grand.Services.Events;
-
-using Moq;
-using System.Collections.Generic;
 using Grand.Services.Tests;
-using Grand.Core.Caching;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System;
+using System.Collections.Generic;
 
 namespace Grand.Services.Customers.Tests
 {

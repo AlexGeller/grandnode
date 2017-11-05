@@ -1,23 +1,25 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Web.Mvc;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Domain.Orders;
+using Grand.Core.Infrastructure;
+using Grand.Framework.Controllers;
+using Grand.Framework.Mvc.Filters;
 using Grand.Plugin.Widgets.GoogleAnalytics.Models;
 using Grand.Services.Catalog;
 using Grand.Services.Configuration;
+using Grand.Services.Directory;
 using Grand.Services.Localization;
 using Grand.Services.Logging;
 using Grand.Services.Orders;
 using Grand.Services.Stores;
-using Grand.Web.Framework.Controllers;
-using Grand.Core.Infrastructure;
-using Grand.Services.Directory;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 
 namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
 {
+    [Area("Admin")]
     public class WidgetsGoogleAnalyticsController : BasePluginController
     {
         private readonly IWorkContext _workContext;
@@ -54,13 +56,12 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
             this._localizationService = localizationService;
         }
 
-        [AdminAuthorize]
-        [ChildActionOnly]
-        public ActionResult Configure()
+        [AuthorizeAdmin]
+        public IActionResult Configure()
         {
             //load settings for a chosen store scope
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
-            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsSettings>(storeScope);
+            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsEcommerceSettings>(storeScope);
             var model = new ConfigurationModel();
             model.GoogleId = googleAnalyticsSettings.GoogleId;
             model.TrackingScript = googleAnalyticsSettings.TrackingScript;
@@ -78,17 +79,16 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
                 model.IncludingTax_OverrideForStore = _settingService.SettingExists(googleAnalyticsSettings, x => x.IncludingTax, storeScope);
             }
 
-            return View("~/Plugins/Widgets.GoogleAnalytics/Views/WidgetsGoogleAnalytics/Configure.cshtml", model);
+            return View("~/Plugins/Widgets.GoogleAnalytics/netcoreapp2.0/Views/Configure.cshtml", model);
         }
 
         [HttpPost]
-        [AdminAuthorize]
-        [ChildActionOnly]
-        public ActionResult Configure(ConfigurationModel model)
+        [AuthorizeAdmin]
+        public IActionResult Configure(ConfigurationModel model)
         {
             //load settings for a chosen store scope
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
-            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsSettings>(storeScope);
+            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsEcommerceSettings>(storeScope);
             googleAnalyticsSettings.GoogleId = model.GoogleId;
             googleAnalyticsSettings.TrackingScript = model.TrackingScript;
             googleAnalyticsSettings.EcommerceScript = model.EcommerceScript;
@@ -130,12 +130,11 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
 
             return Configure();
         }
-
-        [ChildActionOnly]
-        public ActionResult PublicInfo(string widgetZone, object additionalData = null)
+        
+        public IActionResult PublicInfo(string widgetZone, object additionalData = null)
         {
             string globalScript = "";
-            var routeData = ((System.Web.UI.Page)this.HttpContext.CurrentHandler).RouteData;
+            var routeData = Url.ActionContext.RouteData;
 
             try
             {
@@ -146,8 +145,8 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
                     return Content("");
 
                 //Special case, if we are in last step of checkout, we can use order total for conversion value
-                if (controller.ToString().Equals("checkout", StringComparison.InvariantCultureIgnoreCase) &&
-                    action.ToString().Equals("completed", StringComparison.InvariantCultureIgnoreCase))
+                if (controller.ToString().Equals("checkout", StringComparison.OrdinalIgnoreCase) &&
+                    action.ToString().Equals("completed", StringComparison.OrdinalIgnoreCase))
                 {
                     var lastOrder = GetLastOrder();
                     globalScript += GetEcommerceScript(lastOrder);
@@ -171,67 +170,18 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
             return order;
         }
         
-        //<script type="text/javascript"> 
-
-        //var _gaq = _gaq || []; 
-        //_gaq.push(['_setAccount', 'UA-XXXXX-X']); 
-        //_gaq.push(['_trackPageview']); 
-
-        //(function() { 
-        //var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; 
-        //ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; 
-        //var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); 
-        //})(); 
-
-        //</script>
         private string GetTrackingScript()
         {
-            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsSettings>(_storeContext.CurrentStore.Id);
+            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsEcommerceSettings>(_storeContext.CurrentStore.Id);
             var analyticsTrackingScript = googleAnalyticsSettings.TrackingScript + "\n";
             analyticsTrackingScript = analyticsTrackingScript.Replace("{GOOGLEID}", googleAnalyticsSettings.GoogleId);
             analyticsTrackingScript = analyticsTrackingScript.Replace("{ECOMMERCE}", "");
             return analyticsTrackingScript;
         }
         
-        //<script type="text/javascript"> 
-
-        //var _gaq = _gaq || []; 
-        //_gaq.push(['_setAccount', 'UA-XXXXX-X']); 
-        //_gaq.push(['_trackPageview']); 
-        //_gaq.push(['_addTrans', 
-        //'1234',           // order ID - required 
-        //'Acme Clothing',  // affiliation or store name 
-        //'11.99',          // total - required 
-        //'1.29',           // tax 
-        //'5',              // shipping 
-        //'San Jose',       // city 
-        //'California',     // state or province 
-        //'USA'             // country 
-        //]); 
-
-        //// add item might be called for every item in the shopping cart 
-        //// where your ecommerce engine loops through each item in the cart and 
-        //// prints out _addItem for each 
-        //_gaq.push(['_addItem', 
-        //'1234',           // order ID - required 
-        //'DD44',           // SKU/code - required 
-        //'T-Shirt',        // product name 
-        //'Green Medium',   // category or variation 
-        //'11.99',          // unit price - required 
-        //'1'               // quantity - required 
-        //]); 
-        //_gaq.push(['_trackTrans']); //submits transaction to the Analytics servers 
-
-        //(function() { 
-        //var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; 
-        //ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; 
-        //var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); 
-        //})(); 
-
-        //</script>
         private string GetEcommerceScript(Order order)
         {
-            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsSettings>(_storeContext.CurrentStore.Id);
+            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsEcommerceSettings>(_storeContext.CurrentStore.Id);
             var usCulture = new CultureInfo("en-US");
             var analyticsTrackingScript = googleAnalyticsSettings.TrackingScript + "\n";
             analyticsTrackingScript = analyticsTrackingScript.Replace("{GOOGLEID}", googleAnalyticsSettings.GoogleId);
@@ -277,9 +227,7 @@ namespace Grand.Plugin.Widgets.GoogleAnalytics.Controllers
                 analyticsEcommerceScript = analyticsEcommerceScript.Replace("{DETAILS}", sb.ToString());
 
                 analyticsTrackingScript = analyticsTrackingScript.Replace("{ECOMMERCE}", analyticsEcommerceScript);
-
             }
-
             return analyticsTrackingScript;
         }
 

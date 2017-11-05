@@ -1,13 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.ComponentModel;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Linq;
 
-namespace Grand.Core.ComponentModel.Tests {
+namespace Grand.Core.ComponentModel.Tests
+{
     [TestClass()]
     public class GenericListTypeConverterTests {
         [TestInitialize()]

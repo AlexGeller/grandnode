@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Directory;
@@ -9,12 +8,14 @@ using Grand.Core.Plugins;
 using Grand.Services.Directory;
 using Grand.Services.Localization;
 using Grand.Services.Stores;
-using System;
-using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
+using Moq;
+using System;
 using System.Threading;
 
-namespace Grand.Services.Catalog.Tests {
+namespace Grand.Services.Catalog.Tests
+{
     [TestClass()]
     public class PriceFormatterTests {
         private IRepository<Currency> _currencyRepo;
@@ -22,16 +23,22 @@ namespace Grand.Services.Catalog.Tests {
         private ICurrencyService _currencyService;
         private CurrencySettings _currencySettings;
         private IWorkContext _workContext;
+        private Mock<IWorkContext> tempWorkContext;
         private ILocalizationService _localizationService;
         private TaxSettings _taxSettings;
         private IPriceFormatter _priceFormatter;
 
         [TestInitialize()]
-        public void TestInitialize() {
+        public void TestInitialize()
+        {
             var cacheManager = new NopNullCache();
-            _workContext = null;
+            tempWorkContext = new Mock<IWorkContext>();
+            {
+                _workContext = tempWorkContext.Object;
+            }
             _currencySettings = new CurrencySettings();
-            var currency01 = new Currency {
+            var currency01 = new Currency
+            {
                 Id = "1",
                 Name = "Euro",
                 CurrencyCode = "EUR",
@@ -43,7 +50,8 @@ namespace Grand.Services.Catalog.Tests {
                 UpdatedOnUtc = DateTime.UtcNow
             };
 
-            var currency02 = new Currency {
+            var currency02 = new Currency
+            {
                 Id = "1",
                 Name = "US Dollar",
                 CurrencyCode = "USD",
@@ -54,7 +62,7 @@ namespace Grand.Services.Catalog.Tests {
                 CreatedOnUtc = DateTime.UtcNow,
                 UpdatedOnUtc = DateTime.UtcNow
             };
-            
+
             var tempCurrencyRepo = new Mock<IRepository<Currency>>();
             {
                 var tempIMongoCollection = new Mock<IMongoCollection<Currency>>().Object;
@@ -101,7 +109,9 @@ namespace Grand.Services.Catalog.Tests {
                 DisplayOrder = 1,
                 Published = true,
                 CreatedOnUtc = DateTime.UtcNow,
-                UpdatedOnUtc = DateTime.UtcNow
+                UpdatedOnUtc = DateTime.UtcNow,
+                MidpointRound = MidpointRounding.AwayFromZero,
+                RoundingType = RoundingType.Rounding001,
             };
             var language0111 = new Language {
                 Id = "1",
@@ -120,18 +130,22 @@ namespace Grand.Services.Catalog.Tests {
                 Name = "US Dollar",
                 CurrencyCode = "USD",
                 DisplayLocale = "en-US",
+                MidpointRound = MidpointRounding.AwayFromZero,
+
             };
             var gbp_currency = new Currency {
                 Id = "2",
                 Name = "great british pound",
                 CurrencyCode = "GBP",
                 DisplayLocale = "en-GB",
+                MidpointRound = MidpointRounding.AwayFromZero,
             };
             var euro_currency = new Currency {
                 Id = "3",
                 Name = "Euro",
                 CurrencyCode = "EUR",
                 DisplayLocale = "en_150",
+                MidpointRound = MidpointRounding.AwayFromZero,
             };
             var language = new Language {
                 Id = "1",
@@ -153,6 +167,7 @@ namespace Grand.Services.Catalog.Tests {
                 Name = "US Dollar",
                 CurrencyCode = "USD",
                 DisplayLocale = "en-US",
+                MidpointRound = MidpointRounding.AwayFromZero,
             };
             var language = new Language {
                 Id = "1",

@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Web.Mvc;
-using Grand.Web.Framework;
-using Grand.Web.Framework.Localization;
-using Grand.Web.Framework.Mvc;
+﻿using Grand.Framework.Localization;
+using Grand.Framework.Mvc.ModelBinding;
+using Grand.Framework.Mvc.Models;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Payments.CheckMoneyOrder.Models
 {
@@ -14,8 +13,7 @@ namespace Grand.Plugin.Payments.CheckMoneyOrder.Models
         }
 
         public string ActiveStoreScopeConfiguration { get; set; }
-
-        [AllowHtml]
+        
         [GrandResourceDisplayName("Plugins.Payment.CheckMoneyOrder.DescriptionText")]
         public string DescriptionText { get; set; }
         public bool DescriptionText_OverrideForStore { get; set; }
@@ -39,8 +37,7 @@ namespace Grand.Plugin.Payments.CheckMoneyOrder.Models
         public partial class ConfigurationLocalizedModel : ILocalizedModelLocal
         {
             public string LanguageId { get; set; }
-
-            [AllowHtml]
+            
             [GrandResourceDisplayName("Plugins.Payment.CheckMoneyOrder.DescriptionText")]
             public string DescriptionText { get; set; }
         }

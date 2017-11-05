@@ -1,20 +1,14 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Customers;
 using Grand.Core.Domain.Logging;
-using Moq;
-using MongoDB.Driver;
 using Grand.Services.Tests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
-namespace Grand.Services.Logging.Tests {
+namespace Grand.Services.Logging.Tests
+{
     [TestClass()]
     public class CustomerActivityServiceTests {
         private ICacheManager _cacheManager;

@@ -33,9 +33,11 @@ using Grand.Services.Vendors;
 using Moq;
 using Grand.Services.Stores;
 
-namespace Grand.Services.Orders.Tests {
+namespace Grand.Services.Orders.Tests
+{
     [TestClass()]
-    public class OrderProcessingServiceTests {
+    public class OrderProcessingServiceTests
+    {
         private IWorkContext _workContext;
         private IStoreContext _storeContext;
         private ITaxService _taxService;
@@ -94,7 +96,8 @@ namespace Grand.Services.Orders.Tests {
         private Store _store;
 
         [TestInitialize()]
-        public void TestInitialize() {
+        public void TestInitialize()
+        {
             _workContext = null;
 
             _store = new Store { Id = "1" };
@@ -118,11 +121,12 @@ namespace Grand.Services.Orders.Tests {
             _categoryService = new Mock<ICategoryService>().Object;
             _manufacturerService = new Mock<IManufacturerService>().Object;
             _storeService = new Mock<IStoreService>().Object;
+            _customerService = new Mock<ICustomerService>().Object;
 
             _productAttributeParser = new Mock<IProductAttributeParser>().Object;
             _priceCalcService = new PriceCalculationService(_workContext, _storeContext,
                 _discountService, _categoryService, _manufacturerService,
-                _productAttributeParser, _productService,
+                _productAttributeParser, _productService, _customerService,
                 cacheManager, _vendorService, _storeService, _shoppingCartSettings, _catalogSettings);
 
             var tempEventPublisher = new Mock<IEventPublisher>();
@@ -178,10 +182,12 @@ namespace Grand.Services.Orders.Tests {
             _addressSettings = new AddressSettings();
 
             //tax
-            _taxSettings = new TaxSettings {
+            _taxSettings = new TaxSettings
+            {
                 ShippingIsTaxable = true,
                 PaymentMethodAdditionalFeeIsTaxable = true,
-                DefaultTaxAddressId = "10" };
+                DefaultTaxAddressId = "10"
+            };
 
             var tempAddressService = new Mock<IAddressService>();
             {
@@ -191,14 +197,14 @@ namespace Grand.Services.Orders.Tests {
             }
 
             _taxService = new TaxService(_addressService, _workContext, _taxSettings,
-                pluginFinder, _geoLookupService, _countryService,_logger,  _customerSettings, _addressSettings);
+                pluginFinder, _geoLookupService, _countryService, _logger, _customerSettings, _addressSettings);
 
             _rewardPointsSettings = new RewardPointsSettings();
 
             _orderTotalCalcService = new OrderTotalCalculationService(_workContext, _storeContext,
                 _priceCalcService, _taxService, _shippingService, _paymentService,
                 _checkoutAttributeParser, _discountService, _giftCardService,
-                _genericAttributeService, null,
+                _genericAttributeService, null, _productService,
                 _taxSettings, _rewardPointsSettings, _shippingSettings, _shoppingCartSettings, _catalogSettings);
 
             _orderService = new Mock<IOrderService>().Object;
@@ -208,7 +214,6 @@ namespace Grand.Services.Orders.Tests {
             _productAttributeFormatter = new Mock<IProductAttributeFormatter>().Object;
             _shoppingCartService = new Mock<IShoppingCartService>().Object;
             _checkoutAttributeFormatter = new Mock<ICheckoutAttributeFormatter>().Object;
-            _customerService = new Mock<ICustomerService>().Object;
             _encryptionService = new Mock<IEncryptionService>().Object;
             _workflowMessageService = new Mock<IWorkflowMessageService>().Object;
             _customerActivityService = new Mock<ICustomerActivityService>().Object;
@@ -217,7 +222,8 @@ namespace Grand.Services.Orders.Tests {
             _vendorService = new Mock<IVendorService>().Object;
             _pdfService = new Mock<IPdfService>().Object;
 
-            _paymentSettings = new PaymentSettings {
+            _paymentSettings = new PaymentSettings
+            {
                 ActivePaymentMethodSystemNames = new List<string>
                 {
                     "Payments.TestMethod"
@@ -238,7 +244,7 @@ namespace Grand.Services.Orders.Tests {
                 _customerService, _discountService,
                 _encryptionService, _workContext,
                 _workflowMessageService, _vendorService,
-                _customerActivityService, tempICustomerActionEventService, 
+                _customerActivityService, tempICustomerActionEventService,
                 _currencyService, _affiliateService,
                 _eventPublisher, _pdfService, null, null, _storeContext,
                 _shippingSettings, _paymentSettings, _rewardPointsSettings,
@@ -247,7 +253,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_cancelled_when_orderStatus_is_not_cancelled_yet() {
+        public void Ensure_order_can_only_be_cancelled_when_orderStatus_is_not_cancelled_yet()
+        {
             /*
             if OrderStatus hasn't status of "cancelled"
             then OrderStatus.CanCancelOrder should return true
@@ -256,7 +263,8 @@ namespace Grand.Services.Orders.Tests {
             var order = new Order();
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -268,16 +276,18 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_marked_as_authorized_when_orderStatus_is_not_cancelled_and_paymentStatus_is_pending() {
+        public void Ensure_order_can_only_be_marked_as_authorized_when_orderStatus_is_not_cancelled_and_paymentStatus_is_pending()
+        {
             /*
             if OrderStatus != Cancelled, it PaymentStaus == Pending
             it should be able to authorize order
             */
-            
+
             var order = new Order();
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -289,25 +299,27 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_captured_when_orderStatus_is_not_cancelled_or_pending_and_paymentstatus_is_authorized_and_paymentModule_supports_capture() {
+        public void Ensure_order_can_only_be_captured_when_orderStatus_is_not_cancelled_or_pending_and_paymentstatus_is_authorized_and_paymentModule_supports_capture()
+        {
             //Property SupportCapture should be returning true (if supports) or false (if dosen't support)
             tempPaymentService.Setup(ps => ps.SupportCapture("paymentMethodSystemName_that_supports_capture")).Returns(true);
             tempPaymentService.Setup(ps => ps.SupportCapture("paymentMethodSystemName_that_doesn't_support_capture")).Returns(false);
             var order = new Order();
 
             //if
-            //PaymetMethodSystemName == "supports caputre"
-            //OrderStatus != cancelled
-            //PaymentStatus != pending
-            //PaymentStatus == authorized
-            //  then
-            //CanCapture() should return true
-            //in other case it should return false
+            //  PaymetMethodSystemName == "supports caputre"
+            //  OrderStatus != cancelled
+            //  PaymentStatus != pending
+            //  PaymentStatus == authorized
+            //then
+            //  CanCapture() should return true
+            //  in other case it should return false
 
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_supports_capture";
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -323,7 +335,8 @@ namespace Grand.Services.Orders.Tests {
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_doesn't_support_capture";
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -333,11 +346,13 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_marked_as_paid_when_orderStatus_is_cancelled_or_paymentStatus_is_paid_or_refunded_or_voided() {
+        public void Ensure_order_cannot_be_marked_as_paid_when_orderStatus_is_cancelled_or_paymentStatus_is_paid_or_refunded_or_voided()
+        {
             var order = new Order();
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -353,7 +368,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_refunded_when_paymentstatus_is_paid_and_paymentModule_supports_refund() {
+        public void Ensure_order_can_only_be_refunded_when_paymentstatus_is_paid_and_paymentModule_supports_refund()
+        {
             //method SupportRefund() is expected to return true or false - it depends on string
             tempPaymentService.Setup(ps => ps.SupportRefund("paymentMethodSystemName_that_supports_refund")).Returns(true);
             tempPaymentService.Setup(ps => ps.SupportRefund("paymentMethodSystemName_that_doesn't_support_refund")).Returns(false);
@@ -364,7 +380,8 @@ namespace Grand.Services.Orders.Tests {
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -379,7 +396,8 @@ namespace Grand.Services.Orders.Tests {
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_doesn't_support_refund";
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -390,7 +408,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_refunded_when_orderTotal_is_zero() {
+        public void Ensure_order_cannot_be_refunded_when_orderTotal_is_zero()
+        {
             tempPaymentService.Setup(ps => ps.SupportRefund("paymentMethodSystemName_that_supports_refund")).Returns(true);
             var order = new Order();
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_supports_refund";
@@ -398,7 +417,8 @@ namespace Grand.Services.Orders.Tests {
             //OrderTotal = 0
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -408,14 +428,17 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_refunded_offline_when_paymentstatus_is_paid() {
+        public void Ensure_order_can_only_be_refunded_offline_when_paymentstatus_is_paid()
+        {
             //if paid, can get online refund
-            var order = new Order {
+            var order = new Order
+            {
                 OrderTotal = 1,
             };
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -428,11 +451,15 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_refunded_offline_when_orderTotal_is_zero() {
+        public void Ensure_order_cannot_be_refunded_offline_when_orderTotal_is_zero()
+        {
             var order = new Order { OrderTotal = 0 }; //no values in ORderTotal property
-            foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus))) {
-                foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus))) {
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+            foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
+            {
+                foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
+                {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -444,7 +471,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_voided_when_paymentstatus_is_authorized_and_paymentModule_supports_void() {
+        public void Ensure_order_can_only_be_voided_when_paymentstatus_is_authorized_and_paymentModule_supports_void()
+        {
             tempPaymentService.Setup(ps => ps.SupportVoid("paymentMethodSystemName_that_supports_void")).Returns(true);
             tempPaymentService.Setup(ps => ps.SupportVoid("paymentMethodSystemName_that_doesn't_support_void")).Returns(false);
 
@@ -454,7 +482,8 @@ namespace Grand.Services.Orders.Tests {
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -468,7 +497,8 @@ namespace Grand.Services.Orders.Tests {
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_doesn't_support_void";
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -478,14 +508,16 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_voided_when_orderTotal_is_zero() {
+        public void Ensure_order_cannot_be_voided_when_orderTotal_is_zero()
+        {
             tempPaymentService.Setup(ps => ps.SupportVoid("paymentMethodSystemName_that_supports_void")).Returns(true);
             var order = new Order(); //nothing inside OrderTotal !
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_supports_void";
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -495,14 +527,17 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_voided_offline_when_paymentstatus_is_authorized() {
+        public void Ensure_order_can_only_be_voided_offline_when_paymentstatus_is_authorized()
+        {
             //payment status == authorized && OrderTotal >0
-            var order = new Order {
+            var order = new Order
+            {
                 OrderTotal = 1,
             };
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -515,13 +550,15 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_voided_offline_when_orderTotal_is_zero() {
+        public void Ensure_order_cannot_be_voided_offline_when_orderTotal_is_zero()
+        {
             //CanVoidOffline() ==false when nothing in ORderTotal
             var order = new Order();
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -531,7 +568,8 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_partially_refunded_when_paymentstatus_is_paid_or_partiallyRefunded_and_paymentModule_supports_partialRefund() {
+        public void Ensure_order_can_only_be_partially_refunded_when_paymentstatus_is_paid_or_partiallyRefunded_and_paymentModule_supports_partialRefund()
+        {
             //SupportPartiallyRefund()
             tempPaymentService.Setup(ps => ps.SupportPartiallyRefund("paymentMethodSystemName_that_supports_partialrefund")).Returns(true);
             tempPaymentService.Setup(ps => ps.SupportPartiallyRefund("paymentMethodSystemName_that_doesn't_support_partialrefund")).Returns(false);
@@ -541,7 +579,8 @@ namespace Grand.Services.Orders.Tests {
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -556,7 +595,8 @@ namespace Grand.Services.Orders.Tests {
             order.PaymentMethodSystemName = "paymentMethodSystemName_that_doesn't_support_partialrefund"; //changed!
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -566,10 +606,12 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_partially_refunded_when_amountToRefund_is_greater_than_amount_that_can_be_refunded() {
+        public void Ensure_order_cannot_be_partially_refunded_when_amountToRefund_is_greater_than_amount_that_can_be_refunded()
+        {
             tempPaymentService.Setup(ps => ps.SupportPartiallyRefund("paymentMethodSystemName_that_supports_partialrefund")).Returns(true);
 
-            var order = new Order {
+            var order = new Order
+            {
                 OrderTotal = 100,
                 RefundedAmount = 30, //100-30=70 can be refunded
             };
@@ -577,7 +619,8 @@ namespace Grand.Services.Orders.Tests {
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -587,13 +630,15 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_can_only_be_partially_refunded_offline_when_paymentstatus_is_paid_or_partiallyRefunded() {
+        public void Ensure_order_can_only_be_partially_refunded_offline_when_paymentstatus_is_paid_or_partiallyRefunded()
+        {
             var order = new Order();
             order.OrderTotal = 100;
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
@@ -608,15 +653,18 @@ namespace Grand.Services.Orders.Tests {
         }
 
         [TestMethod()]
-        public void Ensure_order_cannot_be_partially_refunded_offline_when_amountToRefund_is_greater_than_amount_that_can_be_refunded() {
-            var order = new Order {
+        public void Ensure_order_cannot_be_partially_refunded_offline_when_amountToRefund_is_greater_than_amount_that_can_be_refunded()
+        {
+            var order = new Order
+            {
                 OrderTotal = 100,
                 RefundedAmount = 30, //100-30=70 can be refunded
             };
 
             foreach (OrderStatus os in Enum.GetValues(typeof(OrderStatus)))
                 foreach (PaymentStatus ps in Enum.GetValues(typeof(PaymentStatus)))
-                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus))) {
+                    foreach (ShippingStatus ss in Enum.GetValues(typeof(ShippingStatus)))
+                    {
                         order.OrderStatus = os;
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;

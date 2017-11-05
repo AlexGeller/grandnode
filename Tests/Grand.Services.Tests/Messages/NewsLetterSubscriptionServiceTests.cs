@@ -1,13 +1,14 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Core.Data;
+﻿using Grand.Core.Data;
 using Grand.Core.Domain.Customers;
 using Grand.Core.Domain.Messages;
 using Grand.Services.Customers;
 using Grand.Services.Events;
-using Moq;
 using Grand.Services.Tests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
-namespace Grand.Services.Messages.Tests {
+namespace Grand.Services.Messages.Tests
+{
     [TestClass()]
     public class NewsLetterSubscriptionServiceTests {
         private Mock<IEventPublisher> tempEventPublisher;

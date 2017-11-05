@@ -1,18 +1,14 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Grand.Services.Directory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Grand.Core.Caching;
+﻿using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Directory;
 using Grand.Services.Events;
-using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
+using Moq;
+using System.Linq;
 
-namespace Grand.Services.Directory.Tests {
+namespace Grand.Services.Directory.Tests
+{
     [TestClass()]
     public class MeasureServiceTests {
         private IRepository<MeasureDimension> _measureDimensionRepository;

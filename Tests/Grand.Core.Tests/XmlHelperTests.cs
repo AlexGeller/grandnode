@@ -1,8 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Text;
 
-namespace Grand.Core.Tests {
+namespace Grand.Core.Tests
+{
     [TestClass()]
     public class XmlHelperTests {
        

@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Web.Routing;
+using Grand.Core;
 using Grand.Core.Domain.Orders;
 using Grand.Core.Domain.Payments;
 using Grand.Core.Plugins;
@@ -9,6 +7,10 @@ using Grand.Services.Configuration;
 using Grand.Services.Localization;
 using Grand.Services.Orders;
 using Grand.Services.Payments;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using System;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Payments.CheckMoneyOrder
 {
@@ -22,23 +24,35 @@ namespace Grand.Plugin.Payments.CheckMoneyOrder
         private readonly ISettingService _settingService;
         private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         private readonly ILocalizationService _localizationService;
+        private readonly IWebHelper _webHelper;
+        
         #endregion
 
         #region Ctor
 
         public CheckMoneyOrderPaymentProcessor(CheckMoneyOrderPaymentSettings checkMoneyOrderPaymentSettings,
-            ISettingService settingService, IOrderTotalCalculationService orderTotalCalculationService, ILocalizationService localizationService)
+            ISettingService settingService, IOrderTotalCalculationService orderTotalCalculationService, 
+            ILocalizationService localizationService, IWebHelper webHelper)
         {
             this._checkMoneyOrderPaymentSettings = checkMoneyOrderPaymentSettings;
             this._settingService = settingService;
             this._orderTotalCalculationService = orderTotalCalculationService;
             this._localizationService = localizationService;
+            this._webHelper = webHelper;
         }
 
         #endregion
-        
+
         #region Methods
-        
+
+        /// <summary>
+        /// Gets a configuration page URL
+        /// </summary>
+        public override string GetConfigurationPageUrl()
+        {
+            return $"{_webHelper.GetStoreLocation()}Admin/PaymentCheckMoneyOrder/Configure";
+        }
+
         /// <summary>
         /// Process a payment
         /// </summary>
@@ -237,6 +251,23 @@ namespace Grand.Plugin.Payments.CheckMoneyOrder
             base.Uninstall();
         }
 
+        public IList<string> ValidatePaymentForm(IFormCollection form)
+        {
+            var warnings = new List<string>();
+            return warnings;
+        }
+
+        public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
+        {
+            var paymentInfo = new ProcessPaymentRequest();
+            return paymentInfo;
+        }
+
+        public void GetPublicViewComponent(out string viewComponentName)
+        {
+            viewComponentName = "PaymentCheckMoneyOrder";
+        }
+
         #endregion
 
         #region Properties
@@ -327,6 +358,5 @@ namespace Grand.Plugin.Payments.CheckMoneyOrder
         }
 
         #endregion
-
     }
 }

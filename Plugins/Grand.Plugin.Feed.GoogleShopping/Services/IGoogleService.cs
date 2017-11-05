@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Grand.Plugin.Feed.GoogleShopping.Domain;
+using System.Collections.Generic;
 
 namespace Grand.Plugin.Feed.GoogleShopping.Services
 {

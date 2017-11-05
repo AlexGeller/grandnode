@@ -1,10 +1,10 @@
 ﻿@{
-    Layout = "";
+    Layout = "_ConfigurePlugin";
 }
 @model ConfigurationModel
-@using Grand.Web.Framework;
+@using Grand.Framework;
 @using Grand.Plugin.Payments.CashOnDelivery.Models;
-@Html.Action("StoreScopeConfiguration", "Setting", new { area = "Admin" })
+@await Component.InvokeAsync("StoreScopeConfiguration")	
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()

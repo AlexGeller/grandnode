@@ -1,7 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Web.Mvc;
-using Grand.Core;
+﻿using Grand.Framework.Controllers;
+using Grand.Framework.Kendoui;
+using Grand.Framework.Mvc;
+using Grand.Framework.Mvc.Filters;
+using Grand.Framework.Security;
 using Grand.Plugin.Tax.CountryStateZip.Domain;
 using Grand.Plugin.Tax.CountryStateZip.Models;
 using Grand.Plugin.Tax.CountryStateZip.Services;
@@ -9,14 +10,15 @@ using Grand.Services.Directory;
 using Grand.Services.Security;
 using Grand.Services.Stores;
 using Grand.Services.Tax;
-using Grand.Web.Framework.Controllers;
-using Grand.Web.Framework.Kendoui;
-using Grand.Web.Framework.Mvc;
-using Grand.Web.Framework.Security;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.Linq;
 
 namespace Grand.Plugin.Tax.CountryStateZip.Controllers
 {
-    [AdminAuthorize]
+    [AuthorizeAdmin]
+    [Area("Admin")]
     public class TaxCountryStateZipController : BasePluginController
     {
         private readonly ITaxCategoryService _taxCategoryService;
@@ -40,23 +42,13 @@ namespace Grand.Plugin.Tax.CountryStateZip.Controllers
             this._permissionService = permissionService;
             this._storeService = storeService;
         }
-
-        protected override void Initialize(System.Web.Routing.RequestContext requestContext)
-        {
-            //little hack here
-            //always set culture to 'en-US' (Telerik has a bug related to editing decimal values in other cultures). Like currently it's done for admin area in Global.asax.cs
-            CommonHelper.SetTelerikCulture();
-
-            base.Initialize(requestContext);
-        }
-
-        [ChildActionOnly]
-        public ActionResult Configure()
+        
+        public IActionResult Configure()
         {
             var taxCategories = _taxCategoryService.GetAllTaxCategories();
             if (taxCategories.Count == 0)
                 return Content("No tax categories can be loaded");
-
+            
             var model = new TaxRateListModel();
             //stores
             model.AvailableStores.Add(new SelectListItem { Text = "*", Value = "" });
@@ -80,12 +72,12 @@ namespace Grand.Plugin.Tax.CountryStateZip.Controllers
                     model.AvailableStates.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString() });
             }
 
-            return View("~/Plugins/Tax.CountryStateZip/Views/TaxCountryStateZip/Configure.cshtml", model);
+            return View("~/Plugins/Tax.CountryStateZip/netcoreapp2.0/Views/TaxCountryStateZip/Configure.cshtml", model);
         }
 
         [HttpPost]
         [AdminAntiForgery]
-        public ActionResult RatesList(DataSourceRequest command)
+        public IActionResult RatesList(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return Content("Access denied");
@@ -132,7 +124,7 @@ namespace Grand.Plugin.Tax.CountryStateZip.Controllers
 
         [HttpPost]
         [AdminAntiForgery]
-        public ActionResult RateUpdate(TaxRateModel model)
+        public IActionResult RateUpdate(TaxRateModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return Content("Access denied");
@@ -147,7 +139,7 @@ namespace Grand.Plugin.Tax.CountryStateZip.Controllers
 
         [HttpPost]
         [AdminAntiForgery]
-        public ActionResult RateDelete(string id)
+        public IActionResult RateDelete(string id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return Content("Access denied");
@@ -161,7 +153,7 @@ namespace Grand.Plugin.Tax.CountryStateZip.Controllers
 
         [HttpPost]
         [AdminAntiForgery]
-        public ActionResult AddTaxRate(TaxRateListModel model)
+        public IActionResult AddTaxRate(TaxRateListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return Content("Access denied");

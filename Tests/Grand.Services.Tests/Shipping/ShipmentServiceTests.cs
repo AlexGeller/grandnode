@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using Grand.Core;
+﻿using Grand.Core;
 using Grand.Core.Caching;
 using Grand.Core.Data;
 using Grand.Core.Domain.Orders;
@@ -13,11 +11,15 @@ using Grand.Services.Events;
 using Grand.Services.Localization;
 using Grand.Services.Logging;
 using Grand.Services.Orders;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System.Collections.Generic;
 
-namespace Grand.Services.Shipping.Tests {
+namespace Grand.Services.Shipping.Tests
+{
     [TestClass()]
-    public class ShipmentServiceTests {
+    public class ShipmentServiceTests
+    {
         private IRepository<ShippingMethod> _shippingMethodRepository;
         private IRepository<DeliveryDate> _deliveryDateRepository;
         private IRepository<Warehouse> _warehouseRepository;
@@ -37,7 +39,8 @@ namespace Grand.Services.Shipping.Tests {
         private IStoreContext _storeContext;
 
         [TestInitialize()]
-        public void TestInitialize() {
+        public void TestInitialize()
+        {
             //plugin initialization
             new Grand.Services.Tests.ServiceTest().PluginInitializator();
 
@@ -97,20 +100,23 @@ namespace Grand.Services.Shipping.Tests {
         }
 
         [TestMethod()]
-        public void Can_load_shippingRateComputationMethods() {
+        public void Can_load_shippingRateComputationMethods()
+        {
             var srcm = _shippingService.LoadAllShippingRateComputationMethods();
             Assert.IsNotNull(srcm);
             Assert.IsTrue(srcm.Count > 0);
         }
 
         [TestMethod()]
-        public void Can_load_shippingRateComputationMethod_by_systemKeyword() { 
+        public void Can_load_shippingRateComputationMethod_by_systemKeyword()
+        {
             var srcm = _shippingService.LoadShippingRateComputationMethodBySystemName("FixedRateTestShippingRateComputationMethod");
             Assert.IsNotNull(srcm);
         }
 
         [TestMethod()]
-        public void Can_load_active_shippingRateComputationMethods() {
+        public void Can_load_active_shippingRateComputationMethods()
+        {
             var srcm = _shippingService.LoadActiveShippingRateComputationMethods();
             Assert.IsNotNull(srcm);
             Assert.IsTrue(srcm.Count > 0);
